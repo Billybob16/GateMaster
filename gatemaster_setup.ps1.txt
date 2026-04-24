@@ -1,0 +1,57 @@
+Write-Host "============================================"
+Write-Host "   GATEMASTER FULL AUTO-SETUP (POWER MODE)"
+Write-Host "============================================`n"
+
+# Move into script directory
+Set-Location -Path $PSScriptRoot
+
+Write-Host "Step 1: Creating requirements.txt..."
+pip freeze > requirements.txt
+
+Write-Host "Step 2: Initializing Git..."
+git init
+
+Write-Host "Step 3: Adding files..."
+git add .
+
+Write-Host "Step 4: Committing..."
+git commit -m "GateMaster full one-file system" -ErrorAction SilentlyContinue
+
+Write-Host "`n============================================"
+Write-Host "   MANUAL STEP REQUIRED (GitHub Repo)"
+Write-Host "============================================"
+Write-Host "1. A browser window will open."
+Write-Host "2. Create a NEW repo named: GateMaster"
+Write-Host "3. DO NOT add README or .gitignore"
+Write-Host "4. Copy the repo URL (example: https://github.com/Billybob16/GateMaster.git)"
+Write-Host "============================================`n"
+
+Start-Process "https://github.com/new"
+
+$repo = Read-Host "Paste your GitHub repo URL here"
+
+Write-Host "`nSetting remote origin..."
+git remote remove origin -ErrorAction SilentlyContinue
+git remote add origin $repo
+
+Write-Host "Setting branch to main..."
+git branch -M main
+
+Write-Host "Pushing to GitHub..."
+git push -u origin main
+
+Write-Host "`n============================================"
+Write-Host "   OPENING RENDER DEPLOYMENT PAGE"
+Write-Host "============================================"
+Write-Host "When Render opens:"
+Write-Host "1. Click NEW → Web Service"
+Write-Host "2. Select your GateMaster repo"
+Write-Host "3. Use these settings:"
+Write-Host "   Build Command: pip install -r requirements.txt"
+Write-Host "   Start Command: uvicorn gatemaster:app --host 0.0.0.0 --port \$PORT"
+Write-Host "============================================`n"
+
+Start-Process "https://dashboard.render.com/select-repo"
+
+Write-Host "DONE. Your GateMaster system is ready for deployment."
+Pause

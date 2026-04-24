@@ -1,0 +1,53 @@
+@echo off
+echo ============================================
+echo   GATEMASTER AUTO-SETUP SCRIPT (SAFE MODE)
+echo ============================================
+
+echo.
+echo Step 1: Moving into project folder...
+cd /d "%~dp0"
+
+echo.
+echo Step 2: Creating requirements.txt...
+pip freeze > requirements.txt
+
+echo.
+echo Step 3: Initializing Git...
+git init
+
+echo.
+echo Step 4: Adding all files...
+git add .
+
+echo.
+echo Step 5: Committing...
+git commit -m "GateMaster full one-file system"
+
+echo.
+echo ============================================
+echo   IMPORTANT: MANUAL STEP REQUIRED
+echo ============================================
+echo.
+echo 1. Go to https://github.com/new
+echo 2. Create a repo named: GateMaster
+echo 3. DO NOT add README or .gitignore
+echo.
+echo After creating the repo, run these commands:
+echo.
+echo   git remote add origin https://github.com/YOURNAME/GateMaster.git
+echo   git branch -M main
+echo   git push -u origin main
+echo.
+echo ============================================
+echo After pushing to GitHub:
+echo 1. Go to https://dashboard.render.com
+echo 2. New -> Web Service
+echo 3. Select GateMaster repo
+echo 4. Build Command:
+echo      pip install -r requirements.txt
+echo 5. Start Command:
+echo      uvicorn gatemaster:app --host 0.0.0.0 --port %%PORT%%
+echo ============================================
+echo.
+echo DONE. Follow the instructions above.
+pause
