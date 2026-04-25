@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GateMaster Dashboard</title>
+</head>
+<body>
+<h2>GateMaster V3 Dashboard</h2>
+<p>Devices:</p>
+<ul>
+{% for d in devices %}echo <li>{{ d.name }} - {{ d.phone }} - {{ d.location }}</li>
+{% endfor %}echo </ul>
+<h3>Recent Events</h3>
+<ul>
+{% for e in events %}echo <li>[{{ e.timestamp }}] {{ e.level }} - {{ e.message }}</li>
+{% endfor %}echo </ul>
+<a href="/devices">Manage Devices</a> |echo <a href="/logout">Logout</a>
+</body>
+</html>

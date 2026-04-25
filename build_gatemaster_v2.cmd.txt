@@ -1,0 +1,149 @@
+@echo off
+title GateMaster V2 Full Backend Builder
+echo ============================================
+echo        BUILDING GATEMASTER V2 BACKEND
+echo ============================================
+
+cd /d "%~dp0"
+
+echo Creating folder structure...
+mkdir src 2>nul
+mkdir templates 2>nul
+mkdir static 2>nul
+mkdir database 2>nul
+
+echo Writing requirements.txt...
+> requirements.txt (
+echo flask==3.0.2
+echo flask_sqlalchemy==3.1.1
+echo flask_migrate==4.0.5
+echo eventlet==0.41.0
+echo requests==2.32.3
+)
+
+echo Writing app.py...
+> src\app.py (
+echo import os
+echo if os.environ.get("FLASK_RUN_FROM_CLI") ^!= "true":
+echo     import eventlet
+echo     eventlet.monkey_patch()
+echo.
+echo from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+echo from flask_sqlalchemy import SQLAlchemy
+echo from flask_migrate import Migrate
+echo.
+echo app = Flask(__name__)
+echo app.secret_key = "supersecret"
+echo.
+echo app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database/rtu.db"
+echo app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+echo.
+echo db = SQLAlchemy(app)
+echo migrate = Migrate(app, db)
+echo.
+echo class User(db.Model):
+echo     id = db.Column(db.Integer, primary_key=True)
+echo     email = db.Column(db.String(255), unique=True)
+echo     password = db.Column(db.String(255))
+echo.
+echo class Access(db.Model):
+echo     id = db.Column(db.Integer, primary_key=True)
+echo     name = db.Column(db.String(255))
+echo     number = db.Column(db.String(32))
+echo     slot = db.Column(db.Integer)
+echo.
+echo @app.route("/")
+echo def home():
+echo     return redirect(url_for("login"))
+echo.
+echo @app.route("/login", methods=["GET","POST"])
+echo def login():
+echo     if request.method == "POST":
+echo         email = request.form.get("email")
+echo         password = request.form.get("password")
+echo         if email == "admin@master.com" and password == "1234":
+echo             session["user_id"] = 1
+echo             return redirect(url_for("dashboard"))
+echo         return "Invalid login"
+echo     return render_template("login.html")
+echo.
+echo @app.route("/dashboard")
+echo def dashboard():
+echo     if "user_id" not in session:
+echo         return redirect(url_for("login"))
+echo     return render_template("dashboard.html")
+echo.
+echo @app.route("/api/access", methods=["GET"])
+echo def api_access_list():
+echo     data = Access.query.all()
+echo     return jsonify([{"id":x.id,"name":x.name,"number":x.number,"slot":x.slot} for x in data])
+echo.
+echo @app.route("/api/access", methods=["POST"])
+echo def api_access_add():
+echo     data = request.json
+echo     entry = Access(name=data["name"], number=data["number"], slot=data["slot"])
+echo     db.session.add(entry)
+echo     db.session.commit()
+echo     return jsonify({"status":"ok"})
+echo.
+echo @app.route("/logout")
+echo def logout():
+echo     session.clear()
+echo     return redirect(url_for("login"))
+echo.
+echo if __name__ == "__main__":
+echo     app.run(host="0.0.0.0", port=10000, debug=True)
+)
+
+echo Writing login.html...
+> templates\login.html (
+echo ^<html^>
+echo ^<body^>
+echo ^<h2^>Login^</h2^>
+echo ^<form method="POST"^>
+echo Email: ^<input name="email"^>^<br^>
+echo Password: ^<input name="password" type="password"^>^<br^>
+echo ^<button type="submit"^>Login^</button^>
+echo ^</form^>
+echo ^</body^>
+echo ^</html^>
+)
+
+echo Writing dashboard.html...
+> templates\dashboard.html (
+echo ^<html^>
+echo ^<body^>
+echo ^<h2^>GateMaster Dashboard^</h2^>
+echo ^<p^>System online.^</p^>
+echo ^<a href="/logout"^>Logout^</a^>
+echo ^</body^>
+echo ^</html^>
+)
+
+echo Creating virtual environment...
+python -m venv venv
+
+echo Activating venv...
+call venv\Scripts\activate.bat
+
+echo Installing dependencies...
+pip install -r requirements.txt
+
+echo Setting FLASK_APP...
+set FLASK_APP=src/app.py
+
+echo Initializing migrations...
+flask db init
+
+echo Generating migration...
+flask db migrate -m "initial schema"
+
+echo Applying migration...
+flask db upgrade
+
+echo ============================================
+echo        GATEMASTER V2 BUILD COMPLETE
+echo ============================================
+
+echo Starting server...
+python src\app.py

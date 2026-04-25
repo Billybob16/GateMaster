@@ -1,0 +1,114 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="hud-panel">
+
+    <h1 class="hud-title">User Access Manager</h1>
+    <p class="hud-description">
+        Add, remove, and manage user access for the RTU. Supports timed access windows and always-access users.
+    </p>
+
+    <div class="hud-form-group">
+        <label>Name</label>
+        <input class="hud-input" id="name">
+    </div>
+
+    <div class="hud-form-group">
+        <label>Mobile Number</label>
+        <input class="hud-input" id="number">
+    </div>
+
+    <div class="hud-form-group">
+        <label>Start Date</label>
+        <input type="date" class="hud-input" id="start-date">
+    </div>
+
+    <div class="hud-form-group">
+        <label>Start Time</label>
+        <input type="time" class="hud-input" id="start-time">
+    </div>
+
+    <div class="hud-form-group">
+        <label>End Date</label>
+        <input type="date" class="hud-input" id="end-date">
+    </div>
+
+    <div class="hud-form-group">
+        <label>End Time</label>
+        <input type="time" class="hud-input" id="end-time">
+    </div>
+
+    <div class="hud-actions">
+        <button class="hud-btn" onclick="saveUser()">Save User</button>
+        <button class="hud-btn-secondary" onclick="deleteUser()">Delete User</button>
+    </div>
+
+    <h2 class="hud-subtitle">Current Users</h2>
+    <div class="hud-table-container">
+        <table class="hud-table">
+            <thead>
+                <tr>
+                    <th>Slot</th>
+                    <th>Name</th>
+                    <th>Number</th>
+                    <th>Access</th>
+                </tr>
+            </thead>
+            <tbody id="user-table-body"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+async function loadUsers() {
+    const res = await fetch("/api/users");
+    const users = await res.json();
+    const tbody = document.getElementById("user-table-body");
+    tbody.innerHTML = "";
+
+    users.forEach(u => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${u.slot}</td>
+                <td>${u.name}</td>
+                <td>${u.number}</td>
+                <td>${u.access}</td>
+            </tr>
+        `;
+    });
+}
+
+async function saveUser() {
+    const payload = {
+        name: document.getElementById("name").value,
+        number: document.getElementById("number").value,
+        start_date: document.getElementById("start-date").value,
+        start_time: document.getElementById("start-time").value,
+        end_date: document.getElementById("end-date").value,
+        end_time: document.getElementById("end-time").value
+    };
+
+    await fetch("/api/users", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+    });
+
+    loadUsers();
+}
+
+async function deleteUser() {
+    const number = document.getElementById("number").value;
+
+    await fetch("/api/users/" + number, {
+        method: "DELETE"
+    });
+
+    loadUsers();
+}
+
+window.addEventListener("DOMContentLoaded", loadUsers);
+</script>
+
+{% endblock %}

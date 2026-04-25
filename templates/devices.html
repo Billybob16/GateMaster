@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Devices</title>
+</head>
+<body>
+<h2>RTU Devices</h2>
+<ul>
+{% for d in devices %}echo <li>{{ d.name }} - {{ d.phone }} - {{ d.location }}</li>
+{% endfor %}echo </ul>
+<h3>Add Device</h3>
+<form method="POST" action="/devices/add">
+Name: <input name="name"><br>
+Phone: <input name="phone"><br>
+Location: <input name="location"><br>
+<button type="submit">Add</button>
+</form>
+<a href="/dashboard">Back to Dashboard</a>
+</body>
+</html>
