@@ -1,11 +1,11 @@
 import eventlet
 eventlet.monkey_patch()
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+
+from flask import Flask, render_template, request, jsonify
 import sqlite3
 import json
-from datetime import datetime
-import random
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 
