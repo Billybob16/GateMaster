@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="hud-panel">
+
+    <h1 class="hud-title">History</h1>
+
+    <p class="hud-description">
+        A chronological log of all configuration pushes and system events.
+    </p>
+
+    <div class="hud-table-container">
+        <table class="hud-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Event</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody id="history-body">
+                <tr>
+                    <td colspan="3" style="text-align:center; opacity:0.6;">
+                        Loading history…
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+async function loadHistory() {
+    const tbody = document.getElementById("history-body");
+    if (!tbody) return;
+
+    const res = await fetch("/api/history");
+    const data = await res.json();
+
+    tbody.innerHTML = "";
+
+    if (!data.length) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" style="text-align:center; opacity:0.6;">
+                    No history entries yet.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    data.slice().reverse().forEach(entry => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>${entry.timestamp}</td>
+            <td>${entry.event || "Event"}</td>
+            <td><pre>${JSON.stringify(entry.config || {}, null, 2)}</pre></td>
+        `;
+
+        tbody.appendChild(tr);
+    });
+}
+
+window.addEventListener("DOMContentLoaded", loadHistory);
+</script>
+
+{% endblock %}

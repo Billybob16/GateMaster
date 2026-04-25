@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>GateMaster</title>
+
+    <link rel="stylesheet" href="/static/css/hud.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/hud.js" defer></script>
+</head>
+
+<body class="hud-body hud-theme-dark">
+
+    <!-- Loading overlay -->
+    <div id="hud-loading-overlay">
+        <div class="hud-loading-spinner"></div>
+        <div class="hud-loading-text">Syncing with RTU…</div>
+    </div>
+
+    <!-- Scanline effect -->
+    <div class="hud-scanlines"></div>
+
+    <!-- Sidebar -->
+    <aside class="hud-sidebar" id="hud-sidebar">
+        <div class="hud-logo-row">
+            <div class="hud-logo">GateMaster</div>
+            <button class="hud-sidebar-toggle" id="hud-sidebar-toggle">≡</button>
+        </div>
+
+        <nav class="hud-nav">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/devices">Devices</a>
+
+            <div class="hud-section-title">RTU Settings</div>
+            <a href="/rtu/device-identity">Device Identity</a>
+            <a href="/rtu/digital-inputs">Digital Inputs</a>
+            <a href="/rtu/relay-control">Relay Control</a>
+            <a href="/rtu/power-system">Power & System</a>
+            <a href="/rtu/mqtt">MQTT</a>
+            <a href="/rtu/gprs">GPRS / Server</a>
+
+            <div class="hud-section-title">Monitoring</div>
+            <a href="/signal">Signal Graph</a>
+            <a href="/history">History</a>
+
+            <div class="hud-section-title">System</div>
+            <a href="/settings">Settings</a>
+            <a href="/system">System Info</a>
+            <a href="/debug">Debug Console</a>
+            <a href="/logout" class="hud-logout">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- Top status bar -->
+    <header class="hud-topbar">
+        <div class="hud-topbar-left">
+            <span class="hud-status-pill hud-status-ok">RTU Online</span>
+            <span class="hud-status-pill">Signal: <span id="topbar-signal">–</span>%</span>
+        </div>
+        <div class="hud-topbar-right">
+            <button class="hud-theme-toggle" id="hud-theme-toggle">Theme</button>
+            <span class="hud-topbar-user">SuperAdmin</span>
+        </div>
+    </header>
+
+    <!-- Main content -->
+    <main class="hud-main" id="hud-main">
+        {% block content %}{% endblock %}
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="hud-panel">
+
+    <h1 class="hud-title">Dashboard</h1>
+
+    <!-- Summary Cards -->
+    <div class="hud-grid">
+
+        <div class="hud-card">
+            <div class="hud-card-label">Active Devices</div>
+            <div class="hud-card-value" id="card-active-devices">–</div>
+        </div>
+
+        <div class="hud-card">
+            <div class="hud-card-label">Last Push Status</div>
+            <div class="hud-card-value" id="card-last-push">–</div>
+        </div>
+
+        <div class="hud-card">
+            <div class="hud-card-label">Signal Quality</div>
+            <div class="hud-card-value" id="card-signal">–</div>
+        </div>
+
+    </div>
+
+    <!-- Signal Trend -->
+    <h2 class="hud-subtitle">Recent Signal Trend</h2>
+    <div class="hud-chart-container">
+        <canvas id="dashboard-signal-chart" height="140"></canvas>
+    </div>
+
+</div>
+
+<script>
+// Load dashboard summary values
+async function loadDashboardSummary() {
+    const res = await fetch("/api/signal-data");
+    const data = await res.json();
+
+    // Last signal value
+    const last = data[data.length - 1]?.value ?? "–";
+    document.getElementById("card-signal").textContent = last;
+
+    // Active devices (placeholder for now)
+    document.getElementById("card-active-devices").textContent = "1";
+
+    // Last push status (placeholder)
+    document.getElementById("card-last-push").textContent = "OK";
+}
+
+// Load mini signal chart
+async function loadDashboardChart() {
+    const canvas = document.getElementById("dashboard-signal-chart");
+    if (!canvas) return;
+
+    const res = await fetch("/api/signal-data");
+    const data = await res.json();
+
+    const labels = data.map(p => p.t.slice(11, 19));
+    const values = data.map(p => p.value);
+
+    new Chart(canvas.getContext("2d"), {
+        type: "line",
+        data: {
+            labels,
+            datasets: [{
+                label: "Signal",
+                data: values,
+                borderColor: "#00ff88",
+                backgroundColor: "rgba(0,255,136,0.1)",
+                tension: 0.3,
+                borderWidth: 2,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: "#aaffaa" } },
+                y: { ticks: { color: "#aaffaa" } }
+            }
+        }
+    });
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+    loadDashboardSummary();
+    loadDashboardChart();
+});
+</script>
+
+{% endblock %}

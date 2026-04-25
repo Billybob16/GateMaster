@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="hud-panel">
+
+    <h1 class="hud-title">Signal Graph</h1>
+
+    <p class="hud-description">
+        Live signal strength over time. Updates automatically every few seconds.
+    </p>
+
+    <div class="hud-chart-container">
+        <canvas id="signal-chart" height="180"></canvas>
+    </div>
+
+</div>
+
+<script>
+async function loadSignalGraph() {
+    const canvas = document.getElementById("signal-chart");
+    if (!canvas) return;
+
+    async function refresh() {
+        const res = await fetch("/api/signal-data");
+        const data = await res.json();
+
+        const labels = data.map(p => p.t.slice(11, 19));
+        const values = data.map(p => p.value);
+
+        if (!window.signalChart) {
+            window.signalChart = new Chart(canvas.getContext("2d"), {
+                type: "line",
+                data: {
+                    labels,
+                    datasets: [{
+                        label: "Signal Strength",
+                        data: values,
+                        borderColor: "#00ff88",
+                        backgroundColor: "rgba(0,255,136,0.1)",
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: "#aaffaa" } },
+                        y: { ticks: { color: "#aaffaa" } }
+                    }
+                }
+            });
+        } else {
+            window.signalChart.data.labels = labels;
+            window.signalChart.data.datasets[0].data = values;
+            window.signalChart.update();
+        }
+    }
+
+    await refresh();
+    setInterval(refresh, 5000);
+}
+
+window.addEventListener("DOMContentLoaded", loadSignalGraph);
+</script>
+
+{% endblock %}

@@ -1,0 +1,45 @@
+Folder PATH listing for volume Windows
+Volume serial number is 0C55-7CD0
+C:.
+|   gatemaster_setup.ps1.txt
+|   gatemaster_setup.txt
+|   requirements.txt
+|   setup_gatemaster.cmd.txt
+|   structure.txt
+|   structure_final.txt
+|   
++---database
+|       rtu_config.db
+|       
+\---src
+    |   app.py
+    |   
+    +---static
+    |   +---css
+    |   |       hud.css
+    |   |       Static.css
+    |   |       style.css
+    |   |       
+    |   \---js
+    |           Dashboard.js
+    |           hud.js
+    |           
+    \---templates
+            dashboard.html
+            debug.html
+            devices.html
+            history.html
+            layout.html
+            login.html
+            rtu_device_identity.html
+            rtu_digital_inputs.html
+            rtu_gprs.html
+            rtu_mqtt.html
+            rtu_power_system.html
+            rtu_relay_control.html
+            settings.html
+            signal.html
+            system.html
+            templates.html
+            templates.txt
+            

@@ -1,8 +1,9 @@
-import os
-import json
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 import sqlite3
+import json
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+import random
+import os
 
 app = Flask(__name__)
 
@@ -259,21 +260,63 @@ def rtu_reset_defaults():
 # SIMULATED PUSH + LOGGING
 # -----------------------------
 PUSH_LOG = []
+SIGNAL_POINTS = []
+HISTORY_LOG = []
 
 
 @app.route("/api/push", methods=["POST"])
 def api_push():
+    cfg = load_rtu_settings()
     entry = {
         "timestamp": datetime.utcnow().isoformat(),
-        "config": load_rtu_settings()
+        "config": cfg,
+        "event": "Config pushed to device"
     }
     PUSH_LOG.append(entry)
+    HISTORY_LOG.append(entry)
     return jsonify({"status": "ok"})
 
 
 @app.route("/debug")
 def debug():
     return "<pre>" + json.dumps(PUSH_LOG, indent=2) + "</pre>"
+
+
+# -----------------------------
+# DASHBOARD + SIGNAL + HISTORY PAGES
+# -----------------------------
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
+
+
+@app.route("/signal")
+def signal():
+    return render_template("signal.html")
+
+
+@app.route("/history")
+def history():
+    return render_template("history.html")
+
+
+# -----------------------------
+# SIGNAL + HISTORY APIs
+# -----------------------------
+@app.route("/api/signal-data")
+def api_signal_data():
+    if len(SIGNAL_POINTS) > 50:
+        SIGNAL_POINTS.pop(0)
+    SIGNAL_POINTS.append({
+        "t": datetime.utcnow().isoformat(),
+        "value": random.randint(40, 100)
+    })
+    return jsonify(SIGNAL_POINTS)
+
+
+@app.route("/api/history")
+def api_history():
+    return jsonify(HISTORY_LOG)
 
 
 # -----------------------------
