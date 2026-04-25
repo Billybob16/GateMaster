@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="hud-panel">
+  <h1 class="hud-title">RTU Device Identity</h1>
+
+  <form method="POST" action="/rtu/device-identity/save" class="hud-form">
+
+    <div class="hud-form-group">
+      <label>Password</label>
+      <input type="text" name="password" value="{{ s.password }}" class="hud-input">
+    </div>
+
+    <div class="hud-form-group">
+      <label>SIM Card Phone Number</label>
+      <input type="text" name="sim_number" value="{{ s.sim_number }}" class="hud-input">
+    </div>
+
+    <div class="hud-form-group">
+      <label>MQTT Client ID</label>
+      <input type="text" name="mqtt_client_id" value="{{ s.mqtt_client_id }}" class="hud-input">
+    </div>
+
+    <div class="hud-actions">
+      <button class="hud-btn" type="submit">Save</button>
+      <button class="hud-btn hud-btn-secondary" type="button" onclick="pushToDevice()">Push to Device</button>
+    </div>
+
+  </form>
+
+  <h2 class="hud-subtitle">Current JSON Config</h2>
+  <pre id="rtu-json-preview" class="hud-json"></pre>
+</div>
+{% endblock %}

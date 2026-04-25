@@ -2,27 +2,34 @@
 {% block content %}
 <div class="hud-panel">
   <h1 class="hud-title">RTU Digital Inputs</h1>
+
   <form method="POST" action="/rtu/digital-inputs/save" class="hud-form">
+
     <div class="hud-form-group">
       <label>DIN1 Type</label>
       <input type="text" name="din1_type" value="{{ s.din1_type }}" class="hud-input">
     </div>
+
     <div class="hud-form-group">
       <label>DIN2 Type</label>
       <input type="text" name="din2_type" value="{{ s.din2_type }}" class="hud-input">
     </div>
+
     <div class="hud-form-group">
       <label>DIN1 Alarm Content</label>
       <input type="text" name="din1_alarm" value="{{ s.din1_alarm }}" class="hud-input">
     </div>
+
     <div class="hud-form-group">
       <label>DIN2 Alarm Content</label>
       <input type="text" name="din2_alarm" value="{{ s.din2_alarm }}" class="hud-input">
     </div>
+
     <div class="hud-actions">
       <button class="hud-btn" type="submit">Save</button>
       <button class="hud-btn hud-btn-secondary" type="button" onclick="pushToDevice()">Push to Device</button>
     </div>
+
   </form>
 
   <h2 class="hud-subtitle">Current JSON Config</h2>

@@ -2,31 +2,39 @@
 {% block content %}
 <div class="hud-panel">
   <h1 class="hud-title">RTU Power & System</h1>
+
   <form method="POST" action="/rtu/power-system/save" class="hud-form">
+
     <div class="hud-form-group">
       <label>Auto Arm After Call (min)</label>
       <input type="number" name="auto_arm_after_call" value="{{ s.auto_arm_after_call }}" class="hud-input">
     </div>
+
     <div class="hud-form-group">
       <label>Arm/Disarm After Power On (0=Disarm,1=Arm)</label>
       <input type="number" name="arm_after_power_on" value="{{ s.arm_after_power_on }}" class="hud-input">
     </div>
+
     <div class="hud-form-group">
       <label>Power Failure Alarm Delay (min)</label>
       <input type="number" name="power_fail_delay" value="{{ s.power_fail_delay }}" class="hud-input">
     </div>
+
     <div class="hud-form-group">
       <label>Self-Check Report Interval (hours)</label>
       <input type="number" name="self_check_interval" value="{{ s.self_check_interval }}" class="hud-input">
     </div>
+
     <div class="hud-form-group">
       <label>Heartbeat Interval (sec)</label>
       <input type="number" name="heartbeat_interval" value="{{ s.heartbeat_interval }}" class="hud-input">
     </div>
+
     <div class="hud-actions">
       <button class="hud-btn" type="submit">Save</button>
       <button class="hud-btn hud-btn-secondary" type="button" onclick="pushToDevice()">Push to Device</button>
     </div>
+
   </form>
 
   <h2 class="hud-subtitle">Current JSON Config</h2>

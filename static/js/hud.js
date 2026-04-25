@@ -1,3 +1,6 @@
+/* ---------------------------------------------------------
+   FETCH JSON CONFIG FOR PREVIEW
+--------------------------------------------------------- */
 async function fetchConfig() {
   try {
     const res = await fetch('/debug');
@@ -7,15 +10,21 @@ async function fetchConfig() {
       pre.textContent = text;
     }
   } catch (e) {
-    console.error(e);
+    console.error("Error fetching config:", e);
   }
 }
 
+
+/* ---------------------------------------------------------
+   CINEMATIC PUSH SEQUENCE
+--------------------------------------------------------- */
 function setStageActive(stageId) {
-  ['stage1', 'stage2', 'stage3'].forEach(id => {
+  const stages = ['stage1', 'stage2', 'stage3'];
+  stages.forEach(id => {
     const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.toggle('active', id === stageId);
+    if (el) {
+      el.classList.toggle('active', id === stageId);
+    }
   });
 }
 
@@ -31,32 +40,47 @@ function hidePushModal() {
 
 async function pushToDevice() {
   showPushModal();
-  setStageActive('stage1');
+
   const bar = document.getElementById('push-progress-bar');
-  if (bar) bar.style.width = '10%';
 
-  await new Promise(r => setTimeout(r, 800));
+  // Stage 1 — Connecting
+  setStageActive('stage1');
+  if (bar) bar.style.width = '15%';
+  await new Promise(r => setTimeout(r, 900));
+
+  // Stage 2 — Authenticating
   setStageActive('stage2');
-  if (bar) bar.style.width = '40%';
+  if (bar) bar.style.width = '45%';
+  await new Promise(r => setTimeout(r, 900));
 
-  await new Promise(r => setTimeout(r, 800));
+  // Stage 3 — Uploading
   setStageActive('stage3');
   if (bar) bar.style.width = '75%';
+  await new Promise(r => setTimeout(r, 900));
 
+  // Send simulated push
   try {
     await fetch('/api/push', { method: 'POST' });
-    await new Promise(r => setTimeout(r, 800));
     if (bar) bar.style.width = '100%';
   } catch (e) {
-    console.error(e);
+    console.error("Push failed:", e);
   }
 
-  await new Promise(r => setTimeout(r, 800));
+  // Finish sequence
+  await new Promise(r => setTimeout(r, 900));
   hidePushModal();
+
+  // Reset bar
   if (bar) bar.style.width = '0%';
+
+  // Refresh JSON preview
   fetchConfig();
 }
 
+
+/* ---------------------------------------------------------
+   AUTO-LOAD JSON PREVIEW ON PAGE LOAD
+--------------------------------------------------------- */
 document.addEventListener('DOMContentLoaded', () => {
   fetchConfig();
 });
