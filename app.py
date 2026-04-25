@@ -1,171 +1,234 @@
-from flask import Flask, render_template, request, redirect, session, jsonify
-from flask_socketio import SocketIO
-import eventlet
-import random
-import datetime
-from threading import Thread, Lock
-import time
-
-eventlet.monkey_patch()
+import os
+import json
+import sqlite3
+from datetime import datetime
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 
 app = Flask(__name__)
-app.secret_key = "supersecret"
-socketio = SocketIO(app, async_mode="eventlet")
 
-# -----------------------------
-# Fake in-memory data
-# -----------------------------
-lock = Lock()
+DB_PATH = os.path.join("database", "rtu_config.db")
 
-devices = [
-    {"id": 1, "name": "RTU5025-A", "site": "Warehouse 1", "status": "Online", "signal": 75},
-    {"id": 2, "name": "RTU5025-B", "site": "Depot 3", "status": "Online", "signal": 62},
-    {"id": 3, "name": "RTU5025-C", "site": "Yard 2", "status": "Offline", "signal": 0},
-]
 
-history = []
-signal_points = []
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
-settings = {
-    "admin_phone": "+61400000000",
-    "timezone": "Australia/Sydney",
-    "heartbeat_interval": 60,
-    "signal_threshold": 30,
-    "relay_pulse_ms": 800,
-}
 
-system_info = {
-    "agent_version": "1.0.0",
-    "backend_version": "1.0.0",
-    "uptime": "0h 0m",
-    "host": "Render Dyno",
-}
+def init_db():
+    os.makedirs("database", exist_ok=True)
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS rtu_config (
+            id INTEGER PRIMARY KEY,
+            json_config TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+    """)
+    conn.commit()
 
-# -----------------------------
-# Fake telemetry generator
-# -----------------------------
-def telemetry_loop():
-    while True:
-        with lock:
-            now = datetime.datetime.utcnow().strftime("%H:%M:%S")
+    cur.execute("SELECT COUNT(*) AS c FROM rtu_config")
+    row = cur.fetchone()
+    if row["c"] == 0:
+        default_config = {
+            "password": "6666",
+            "sim_number": "",
+            "din1_type": "1:NO",
+            "din2_type": "1:NO",
+            "din1_alarm": "Unauthorized door opened",
+            "din2_alarm": "DIN2 Alarm",
+            "auto_arm_after_call": 10,
+            "arm_after_power_on": 0,
+            "relay_auth": 1,
+            "relay_on_timer": 0,
+            "notify_on_on": 3,
+            "notify_on_off": 3,
+            "sms_on": "Relay ON!",
+            "sms_off": "Relay OFF!",
+            "power_fail_delay": 999,
+            "self_check_interval": 0,
+            "mqtt_upload_interval": 60,
+            "server_ip": "",
+            "server_port": 0,
+            "gprs_apn": "",
+            "gprs_user": "",
+            "gprs_password": "",
+            "heartbeat_interval": 60,
+            "mqtt_client_id": "",
+            "mqtt_user": "",
+            "mqtt_password": "",
+            "mqtt_publish": "",
+            "mqtt_subscribe": ""
+        }
+        cur.execute(
+            "INSERT INTO rtu_config (json_config, updated_at) VALUES (?, ?)",
+            (json.dumps(default_config), datetime.utcnow().isoformat())
+        )
+        conn.commit()
+    conn.close()
 
-            # Update signals
-            for d in devices:
-                if d["status"] == "Online":
-                    jitter = random.randint(-4, 4)
-                    d["signal"] = max(0, min(100, d["signal"] + jitter))
 
-            # Add signal point
-            avg = int(sum(d["signal"] for d in devices if d["status"] == "Online") /
-                      max(1, len([d for d in devices if d["status"] == "Online"])))
+def load_rtu_settings():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT json_config FROM rtu_config WHERE id = 1")
+    row = cur.fetchone()
+    conn.close()
+    if not row:
+        return {}
+    return json.loads(row["json_config"])
 
-            signal_points.append({"time": now, "value": avg})
-            if len(signal_points) > 60:
-                signal_points.pop(0)
 
-            # Random history event
-            if random.random() < 0.25:
-                dev = random.choice(devices)
-                evt = random.choice(["Gate opened", "Gate closed", "Power fail", "Power restored"])
-                history.insert(0, {
-                    "time": now,
-                    "device": dev["name"],
-                    "event": evt,
-                    "signal": dev["signal"]
-                })
-                if len(history) > 200:
-                    history.pop()
+def save_rtu_settings(settings):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        "UPDATE rtu_config SET json_config = ?, updated_at = ? WHERE id = 1",
+        (json.dumps(settings), datetime.utcnow().isoformat())
+    )
+    conn.commit()
+    conn.close()
 
-        socketio.emit("telemetry", {"devices": devices, "signal": signal_points})
-        time.sleep(3)
 
-Thread(target=telemetry_loop, daemon=True).start()
+@app.before_first_request
+def startup():
+    init_db()
 
-# -----------------------------
-# Authentication
-# -----------------------------
+
 @app.route("/")
 def index():
-    if "user" not in session:
-        return redirect("/login")
-    return redirect("/dashboard")
+    return redirect(url_for("rtu_device_identity"))
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        email = request.form["email"]
-        password = request.form["password"]
 
-        if email == "admin@gatemaster.com" and password == "admin":
-            session["user"] = "superadmin"
-            return redirect("/dashboard")
+# ---------- RTU PAGES ----------
 
-        session["user"] = "client"
-        return redirect("/dashboard")
+@app.route("/rtu/device-identity", methods=["GET"])
+def rtu_device_identity():
+    s = load_rtu_settings()
+    return render_template("rtu_device_identity.html", s=s)
 
-    return render_template("login.html")
 
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect("/login")
+@app.route("/rtu/device-identity/save", methods=["POST"])
+def rtu_device_identity_save():
+    s = load_rtu_settings()
+    s["password"] = request.form.get("password", s["password"])
+    s["sim_number"] = request.form.get("sim_number", s["sim_number"])
+    s["mqtt_client_id"] = request.form.get("mqtt_client_id", s["mqtt_client_id"])
+    save_rtu_settings(s)
+    return redirect(url_for("rtu_device_identity"))
 
-# -----------------------------
-# Pages
-# -----------------------------
-@app.route("/dashboard")
-def dashboard():
-    return render_template("dashboard.html")
 
-@app.route("/devices")
-def devices_page():
-    return render_template("devices.html")
+@app.route("/rtu/digital-inputs", methods=["GET"])
+def rtu_digital_inputs():
+    s = load_rtu_settings()
+    return render_template("rtu_digital_inputs.html", s=s)
 
-@app.route("/history")
-def history_page():
-    return render_template("history.html")
 
-@app.route("/signal")
-def signal_page():
-    return render_template("signal.html")
+@app.route("/rtu/digital-inputs/save", methods=["POST"])
+def rtu_digital_inputs_save():
+    s = load_rtu_settings()
+    s["din1_type"] = request.form.get("din1_type", s["din1_type"])
+    s["din2_type"] = request.form.get("din2_type", s["din2_type"])
+    s["din1_alarm"] = request.form.get("din1_alarm", s["din1_alarm"])
+    s["din2_alarm"] = request.form.get("din2_alarm", s["din2_alarm"])
+    save_rtu_settings(s)
+    return redirect(url_for("rtu_digital_inputs"))
 
-@app.route("/settings")
-def settings_page():
-    return render_template("settings.html")
 
-@app.route("/system")
-def system_page():
-    return render_template("system.html")
+@app.route("/rtu/relay-control", methods=["GET"])
+def rtu_relay_control():
+    s = load_rtu_settings()
+    return render_template("rtu_relay_control.html", s=s)
+
+
+@app.route("/rtu/relay-control/save", methods=["POST"])
+def rtu_relay_control_save():
+    s = load_rtu_settings()
+    s["relay_auth"] = int(request.form.get("relay_auth", s["relay_auth"]))
+    s["relay_on_timer"] = int(request.form.get("relay_on_timer", s["relay_on_timer"]))
+    s["notify_on_on"] = int(request.form.get("notify_on_on", s["notify_on_on"]))
+    s["notify_on_off"] = int(request.form.get("notify_on_off", s["notify_on_off"]))
+    s["sms_on"] = request.form.get("sms_on", s["sms_on"])
+    s["sms_off"] = request.form.get("sms_off", s["sms_off"])
+    save_rtu_settings(s)
+    return redirect(url_for("rtu_relay_control"))
+
+
+@app.route("/rtu/power-system", methods=["GET"])
+def rtu_power_system():
+    s = load_rtu_settings()
+    return render_template("rtu_power_system.html", s=s)
+
+
+@app.route("/rtu/power-system/save", methods=["POST"])
+def rtu_power_system_save():
+    s = load_rtu_settings()
+    s["auto_arm_after_call"] = int(request.form.get("auto_arm_after_call", s["auto_arm_after_call"]))
+    s["arm_after_power_on"] = int(request.form.get("arm_after_power_on", s["arm_after_power_on"]))
+    s["power_fail_delay"] = int(request.form.get("power_fail_delay", s["power_fail_delay"]))
+    s["self_check_interval"] = int(request.form.get("self_check_interval", s["self_check_interval"]))
+    s["heartbeat_interval"] = int(request.form.get("heartbeat_interval", s["heartbeat_interval"]))
+    save_rtu_settings(s)
+    return redirect(url_for("rtu_power_system"))
+
+
+@app.route("/rtu/mqtt", methods=["GET"])
+def rtu_mqtt():
+    s = load_rtu_settings()
+    return render_template("rtu_mqtt.html", s=s)
+
+
+@app.route("/rtu/mqtt/save", methods=["POST"])
+def rtu_mqtt_save():
+    s = load_rtu_settings()
+    s["mqtt_user"] = request.form.get("mqtt_user", s["mqtt_user"])
+    s["mqtt_password"] = request.form.get("mqtt_password", s["mqtt_password"])
+    s["mqtt_publish"] = request.form.get("mqtt_publish", s["mqtt_publish"])
+    s["mqtt_subscribe"] = request.form.get("mqtt_subscribe", s["mqtt_subscribe"])
+    s["mqtt_upload_interval"] = int(request.form.get("mqtt_upload_interval", s["mqtt_upload_interval"]))
+    save_rtu_settings(s)
+    return redirect(url_for("rtu_mqtt"))
+
+
+@app.route("/rtu/gprs", methods=["GET"])
+def rtu_gprs():
+    s = load_rtu_settings()
+    return render_template("rtu_gprs.html", s=s)
+
+
+@app.route("/rtu/gprs/save", methods=["POST"])
+def rtu_gprs_save():
+    s = load_rtu_settings()
+    s["server_ip"] = request.form.get("server_ip", s["server_ip"])
+    s["server_port"] = int(request.form.get("server_port", s["server_port"]))
+    s["gprs_apn"] = request.form.get("gprs_apn", s["gprs_apn"])
+    s["gprs_user"] = request.form.get("gprs_user", s["gprs_user"])
+    s["gprs_password"] = request.form.get("gprs_password", s["gprs_password"])
+    save_rtu_settings(s)
+    return redirect(url_for("rtu_gprs"))
+
+
+# ---------- SIMULATED PUSH + LOGGING ----------
+
+PUSH_LOG = []  # in-memory for now
+
+
+@app.route("/api/push", methods=["POST"])
+def api_push():
+    s = load_rtu_settings()
+    entry = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "config": s
+    }
+    PUSH_LOG.append(entry)
+    return jsonify({"status": "ok"})
+
 
 @app.route("/debug")
-def debug_page():
-    return render_template("debug.html")
+def debug():
+    return "<pre>" + json.dumps(PUSH_LOG, indent=2) + "</pre>"
 
-# -----------------------------
-# APIs
-# -----------------------------
-@app.route("/api/devices")
-def api_devices():
-    return jsonify(devices)
 
-@app.route("/api/history")
-def api_history():
-    return jsonify(history)
-
-@app.route("/api/signal")
-def api_signal():
-    return jsonify(signal_points)
-
-@app.route("/api/system")
-def api_system():
-    return jsonify(system_info)
-
-@app.route("/api/settings")
-def api_settings():
-    return jsonify(settings)
-
-# -----------------------------
-# Run
-# -----------------------------
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=5000)
+    app.run(debug=True)
