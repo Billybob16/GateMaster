@@ -97,8 +97,10 @@ def save_rtu_settings(settings):
     conn.close()
 
 
-@app.before_first_request
-def startup():
+# -----------------------------
+# INITIALIZE DATABASE ON STARTUP
+# -----------------------------
+with app.app_context():
     init_db()
 
 
@@ -214,6 +216,46 @@ def rtu_gprs_save():
 
 
 # -----------------------------
+# RESET DEFAULTS
+# -----------------------------
+@app.route("/rtu/reset-defaults", methods=["POST"])
+def rtu_reset_defaults():
+    default_config = {
+        "password": "6666",
+        "sim_number": "",
+        "din1_type": "1:NO",
+        "din2_type": "1:NO",
+        "din1_alarm": "Unauthorized door opened",
+        "din2_alarm": "DIN2 Alarm",
+        "auto_arm_after_call": 10,
+        "arm_after_power_on": 0,
+        "relay_auth": 1,
+        "relay_on_timer": 0,
+        "notify_on_on": 3,
+        "notify_on_off": 3,
+        "sms_on": "Relay ON!",
+        "sms_off": "Relay OFF!",
+        "power_fail_delay": 999,
+        "self_check_interval": 0,
+        "mqtt_upload_interval": 60,
+        "server_ip": "",
+        "server_port": 0,
+        "gprs_apn": "",
+        "gprs_user": "",
+        "gprs_password": "",
+        "heartbeat_interval": 60,
+        "mqtt_client_id": "",
+        "mqtt_user": "",
+        "mqtt_password": "",
+        "mqtt_publish": "",
+        "mqtt_subscribe": ""
+    }
+
+    save_rtu_settings(default_config)
+    return redirect(request.referrer or "/rtu/device-identity")
+
+
+# -----------------------------
 # SIMULATED PUSH + LOGGING
 # -----------------------------
 PUSH_LOG = []
@@ -234,5 +276,8 @@ def debug():
     return "<pre>" + json.dumps(PUSH_LOG, indent=2) + "</pre>"
 
 
+# -----------------------------
+# RUN SERVER
+# -----------------------------
 if __name__ == "__main__":
     app.run(debug=True)

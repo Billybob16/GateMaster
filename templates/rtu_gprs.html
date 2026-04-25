@@ -1,5 +1,13 @@
+{% set page_title = "GPRS Server Settings" %}
 {% extends "layout.html" %}
 {% block content %}
+<div class="breadcrumbs">
+  <a href="/">Home</a> › RTU Settings › <span class="current">{{ page_title }}</span><form method="POST" action="/rtu/reset-defaults" style="display:inline;">
+  <button class="hud-btn hud-btn-secondary" type="submit">Reset Defaults</button>
+</form>
+
+</div>
+
 <div class="hud-panel">
   <h1 class="hud-title">RTU GPRS / Server Settings</h1>
 
