@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1 class="hud-title">System Overview</h1>
+
+<div class="grid">
+    <div class="hud-card">
+        <h2>Devices Online</h2>
+        <p id="device-count">Loading...</p>
+    </div>
+
+    <div class="hud-card">
+        <h2>Average Signal</h2>
+        <p id="avg-signal">Loading...</p>
+    </div>
+
+    <div class="hud-card">
+        <h2>Recent Event</h2>
+        <p id="recent-event">Loading...</p>
+    </div>
+</div>
+
+{% endblock %}
