@@ -1,7 +1,7 @@
 import os
 import json
 from datetime import datetime
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import requests
@@ -23,7 +23,7 @@ MOBILEMESSAGE_API_KEY = "<6tCVC8GFN4XPIQRJbrcAd1sXyR6WD4gVLxMjqqqYiU8>"
 # -------------------------------------------------
 app = Flask(__name__)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database/rtu_config.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///rtu_config.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
