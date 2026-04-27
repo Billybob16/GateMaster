@@ -698,6 +698,10 @@ def unit_clone(unit_id):
 
 
 @app.route('/dashboard')
+    return render_template('dashboard.html')
+
+
+@app.route('/dashboard')
 def dashboard_page():
     return render_template('dashboard.html')
 
