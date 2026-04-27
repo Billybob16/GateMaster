@@ -1,18 +1,11 @@
-﻿function loadUsers() {
+function loadUsers() {
     fetch("/api/users")
         .then(r => r.json())
         .then(data => {
             let t = document.getElementById("userTable");
             t.innerHTML = "<tr><th>Slot</th><th>Name</th><th>Number</th><th>Access</th><th>Action</th></tr>";
             data.forEach(u => {
-                t.innerHTML += 
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td><button onclick="delUser('')">Delete</button></td>
-                    </tr>;
+                t.innerHTML += `<tr><td>${u.slot}</td><td>${u.name}</td><td>${u.number}</td><td>${u.access}</td><td><button onclick="delUser('${u.number}')">Delete</button></td></tr>`;
             });
         });
 }
