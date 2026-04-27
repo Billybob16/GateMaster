@@ -382,3 +382,31 @@ from flask import redirect, url_for
 def index():
     return redirect(url_for('dashboard_page'))
 
+
+import json
+from datetime import datetime
+@app.route('/api/config', methods=['GET'])
+def api_config_get():
+    cfg = RTUConfig.query.get(1)
+    if not cfg:
+        return jsonify({})
+    return jsonify(json.loads(cfg.json_config))
+@app.route('/api/config', methods=['POST'])
+def api_config_post():
+    data = request.get_json()
+    row = RTUConfig.query.get(1)
+    if not row:
+        row = RTUConfig(id=1, json_config=json.dumps(data), updated_at=datetime.utcnow().isoformat())
+        db.session.add(row)
+    else:
+        row.json_config = json.dumps(data)
+        row.updated_at = datetime.utcnow().isoformat()
+    db.session.commit()
+    return jsonify({'status': 'saved'})
+@app.route('/api/status')
+def api_status_fallback():
+    s = DeviceStatus.query.order_by(DeviceStatus.id.desc()).first()
+    if not s:
+        return jsonify({'online': False, 'last_signal': None, 'timestamp': None})
+    return jsonify({'online': s.online, 'last_signal': s.last_signal, 'timestamp': s.timestamp})
+
