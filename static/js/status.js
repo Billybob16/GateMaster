@@ -1,12 +1,8 @@
-﻿function loadStatus() {
+function loadStatus() {
     fetch("/api/status")
         .then(r => r.json())
         .then(s => {
-            document.getElementById("statusBox").innerHTML = 
-                <p><b>Online:</b> </p>
-                <p><b>Last Signal:</b> </p>
-                <p><b>Updated:</b> </p>
-            ;
+            document.getElementById("statusBox").innerHTML = `<p><b>Online:</b> ${s.online ? 'Yes' : 'No'}</p><p><b>Last Signal:</b> ${s.last_signal || 'N/A'}</p><p><b>Updated:</b> ${s.timestamp || 'N/A'}</p>`;
         });
 }
 
