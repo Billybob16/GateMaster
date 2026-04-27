@@ -376,3 +376,9 @@ def api_send():
     cmd = request.json["cmd"]
     send_sms(RTU_PHONE, cmd)
     return jsonify({"status": "sent", "command": cmd})
+
+from flask import redirect, url_for
+@app.route('/')
+def index():
+    return redirect(url_for('dashboard_page'))
+
