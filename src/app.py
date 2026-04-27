@@ -439,3 +439,47 @@ class UserAccess(db.Model):
     number = db.Column(db.String)
     access = db.Column(db.String)
 
+
+# --- AUTO-PATCHED SMS + RTU ENGINE ---
+import requests
+RTU_PHONE = '+61494652971'
+RTU_PWD = '6666'
+SMS_API_URL = 'https://api.mobilemessage.io/v1/send'
+@app.route('/api/send_sms', methods=['POST'])
+def api_send_sms():
+    data = request.get_json()
+    number = data.get('number')
+    message = data.get('message')
+    payload = {
+        'to': number,
+        'message': message,
+        'from': RTU_PHONE
+    }
+    try:
+        r = requests.post(SMS_API_URL, json=payload)
+        log = SMSLog(sender=RTU_PHONE, message=message)
+        db.session.add(log)
+        db.session.commit()
+        return jsonify({'status': 'sent', 'api_response': r.text})
+    except Exception as e:
+        return jsonify({'status': 'error', 'error': str(e)})
+@app.route('/api/rtu/send', methods=['POST'])
+def api_rtu_send():
+    data = request.get_json()
+    cmd = data.get('cmd')
+    number = data.get('number', RTU_PHONE)
+    full_cmd = f'{RTU_PWD}{cmd}'
+    payload = {
+        'to': number,
+        'message': full_cmd,
+        'from': RTU_PHONE
+    }
+    try:
+        r = requests.post(SMS_API_URL, json=payload)
+        log = SMSLog(sender=RTU_PHONE, message=full_cmd)
+        db.session.add(log)
+        db.session.commit()
+        return jsonify({'status': 'sent', 'cmd': full_cmd, 'api_response': r.text})
+    except Exception as e:
+        return jsonify({'status': 'error', 'error': str(e)})
+
