@@ -410,3 +410,32 @@ def api_status_fallback():
         return jsonify({'online': False, 'last_signal': None, 'timestamp': None})
     return jsonify({'online': s.online, 'last_signal': s.last_signal, 'timestamp': s.timestamp})
 
+
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+
+# --- AUTO-PATCHED MODELS ---
+class RTUConfig(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    json_config = db.Column(db.Text, nullable=False)
+    updated_at = db.Column(db.String, nullable=False)
+
+class DeviceStatus(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    online = db.Column(db.Boolean, default=False)
+    last_signal = db.Column(db.String)
+    timestamp = db.Column(db.String, default=lambda: datetime.utcnow().isoformat())
+
+class SMSLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.String, default=lambda: datetime.utcnow().isoformat())
+    sender = db.Column(db.String)
+    message = db.Column(db.String)
+
+class UserAccess(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    slot = db.Column(db.Integer)
+    name = db.Column(db.String)
+    number = db.Column(db.String)
+    access = db.Column(db.String)
+
