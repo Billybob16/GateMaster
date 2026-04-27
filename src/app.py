@@ -244,7 +244,6 @@ def sms_inbound():
 
 if __name__ == "__main__":
     app.run(debug=True)
-def dashboard_page():
     return render_template("dashboard.html")
 @app.route("/users")
 def users_page():
@@ -307,7 +306,6 @@ def api_save_config():
     return jsonify({"status": "saved"})
 from flask import render_template
 
-def dashboard_page():
     return render_template("dashboard.html")
 
 @app.route("/users")
@@ -688,12 +686,14 @@ def unit_clone(unit_id):
 
 
 @app.route('/dashboard')
-def dashboard_page():
     return render_template('dashboard.html')
 
 
 @app.route('/dashboard')
-def dashboard_page():
+    return render_template('dashboard.html')
+
+
+@app.route('/dashboard')
     return render_template('dashboard.html')
 
 
