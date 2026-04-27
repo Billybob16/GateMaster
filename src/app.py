@@ -483,3 +483,24 @@ def api_rtu_send():
     except Exception as e:
         return jsonify({'status': 'error', 'error': str(e)})
 
+
+# --- MULTI-UNIT SUPPORT ---
+class Unit(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    phone_number = db.Column(db.String, nullable=False)
+    password = db.Column(db.String, nullable=False)
+    created_at = db.Column(db.String, default=lambda: datetime.utcnow().isoformat())
+
+# Link RTUConfig to a specific unit
+RTUConfig.unit_id = db.Column(db.Integer, db.ForeignKey('unit.id'), nullable=True)
+
+# Link DeviceStatus to a specific unit
+DeviceStatus.unit_id = db.Column(db.Integer, db.ForeignKey('unit.id'), nullable=True)
+
+# Link SMSLog to a specific unit
+SMSLog.unit_id = db.Column(db.Integer, db.ForeignKey('unit.id'), nullable=True)
+
+# Link UserAccess to a specific unit
+UserAccess.unit_id = db.Column(db.Integer, db.ForeignKey('unit.id'), nullable=True)
+
