@@ -625,3 +625,66 @@ def unit_overview(unit_id):
         'user_count': user_count
     })
 
+
+# --- UNIT EXPORT / IMPORT / CLONE ---
+@app.route('/api/unit/<int:unit_id>/export')
+def unit_export(unit_id):
+    unit = Unit.query.get(unit_id)
+    if not unit:
+        return jsonify({'error': 'unit not found'}), 404
+    cfg = RTUConfig.query.filter_by(unit_id=unit_id).first()
+    status = DeviceStatus.query.filter_by(unit_id=unit_id).order_by(DeviceStatus.id.desc()).first()
+    users = UserAccess.query.filter_by(unit_id=unit_id).all()
+    logs = SMSLog.query.filter_by(unit_id=unit_id).order_by(SMSLog.id.desc()).limit(100).all()
+    export_data = {
+        'unit': {
+            'name': unit.name,
+            'phone_number': unit.phone_number,
+            'password': unit.password
+        },
+        'config': json.loads(cfg.json_config) if cfg else {},
+        'status': {
+            'online': status.online if status else False,
+            'last_signal': status.last_signal if status else None,
+            'timestamp': status.timestamp if status else None
+        },
+        'users': [{
+            'slot': u.slot,
+            'name': u.name,
+            'number': u.number,
+            'access': u.access
+        } for u in users],
+        'logs': [{
+            'timestamp': l.timestamp,
+            'sender': l.sender,
+            'message': l.message
+        } for l in logs]
+    }
+    return jsonify(export_data)
+@app.route('/api/unit/import', methods=['POST'])
+def unit_import():
+    data = request.get_json()
+    unit_info = data.get('unit')
+    new_unit = Unit(
+        name=unit_info.get('name'),
+        phone_number=unit_info.get('phone_number'),
+        password=unit_info.get('password')
+    )
+    db.session.add(new_unit)
+    db.session.commit()
+    unit_id = new_unit.id
+    cfg = data.get('config', {})
+    if cfg:
+        db.session.add(RTUConfig(unit_id=unit_id, json_config=json.dumps(cfg), updated_at=datetime.utcnow().isoformat()))
+    for u in data.get('users', []):
+        db.session.add(UserAccess(unit_id=unit_id, slot=u['slot'], name=u['name'], number=u['number'], access=u['access']))
+    for l in data.get('logs', []):
+        db.session.add(SMSLog(unit_id=unit_id, timestamp=l['timestamp'], sender=l['sender'], message=l['message']))
+    db.session.commit()
+    return jsonify({'status': 'imported', 'unit_id': unit_id})
+@app.route('/api/unit/<int:unit_id>/clone', methods=['POST'])
+def unit_clone(unit_id):
+    export_data = unit_export(unit_id).json
+    export_data['unit']['name'] = export_data['unit']['name'] + ' (Clone)'
+    return unit_import().json
+
