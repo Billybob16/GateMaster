@@ -696,3 +696,8 @@ def dashboard_page():
 def dashboard_page():
     return render_template('dashboard.html')
 
+
+@app.route('/dashboard')
+def dashboard_page():
+    return render_template('dashboard.html')
+
