@@ -1,0 +1,271 @@
+@echo off
+title GateMaster V3 Repair + Run
+echo ============================================
+echo   REPAIRING AND STARTING GATEMASTER V3
+echo ============================================
+
+cd /d "%~dp0"
+
+echo Creating folders...
+mkdir src 2>nul
+mkdir templates 2>nul
+mkdir database 2>nul
+
+echo Writing requirements.txt...
+> requirements.txt (
+echo flask==3.0.2
+echo flask_sqlalchemy==3.1.1
+echo flask_migrate==4.0.5
+echo eventlet==0.41.0
+echo requests==2.32.3
+echo python-dotenv==1.0.0
+)
+
+echo Writing src\app.py...
+> src\app.py (
+echo import os
+echo if os.environ.get("FLASK_RUN_FROM_CLI") ^!= "true":
+echo     import eventlet
+echo     eventlet.monkey_patch()
+echo.
+echo from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+echo from flask_sqlalchemy import SQLAlchemy
+echo from flask_migrate import Migrate
+echo from datetime import datetime
+echo.
+echo app = Flask(__name__)
+echo app.secret_key = "supersecret"
+echo.
+echo app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database/gatemaster_v3.db"
+echo app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+echo.
+echo db = SQLAlchemy(app)
+echo migrate = Migrate(app, db)
+echo.
+echo class User(db.Model):
+echo     __tablename__ = "users"
+echo     id = db.Column(db.Integer, primary_key=True)
+echo     email = db.Column(db.String(255), unique=True, nullable=False)
+echo     password = db.Column(db.String(255), nullable=False)
+echo     role = db.Column(db.String(32), default="admin")
+echo.
+echo class RTUDevice(db.Model):
+echo     __tablename__ = "rtu_devices"
+echo     id = db.Column(db.Integer, primary_key=True)
+echo     name = db.Column(db.String(255), nullable=False)
+echo     phone = db.Column(db.String(32), nullable=False)
+echo     location = db.Column(db.String(255))
+echo.
+echo class AccessEntry(db.Model):
+echo     __tablename__ = "access_entries"
+echo     id = db.Column(db.Integer, primary_key=True)
+echo     device_id = db.Column(db.Integer, db.ForeignKey("rtu_devices.id"))
+echo     name = db.Column(db.String(255), nullable=False)
+echo     number = db.Column(db.String(32), nullable=False)
+echo     slot = db.Column(db.Integer, nullable=False)
+echo.
+echo class EventLog(db.Model):
+echo     __tablename__ = "event_log"
+echo     id = db.Column(db.Integer, primary_key=True)
+echo     timestamp = db.Column(db.String(32), nullable=False)
+echo     level = db.Column(db.String(16), nullable=False)
+echo     message = db.Column(db.String(255), nullable=False)
+echo     details = db.Column(db.Text)
+echo.
+echo def log_event(level, message, details=None):
+echo     entry = EventLog(
+echo         timestamp=datetime.utcnow().isoformat(),
+echo         level=level,
+echo         message=message,
+echo         details=details
+echo     )
+echo     db.session.add(entry)
+echo     db.session.commit()
+echo.
+echo @app.route("/")
+echo def home():
+echo     if "user_id" in session:
+echo         return redirect(url_for("dashboard"))
+echo     return redirect(url_for("login"))
+echo.
+echo @app.route("/login", methods=["GET","POST"])
+echo def login():
+echo     if request.method == "POST":
+echo         email = request.form.get("email")
+echo         password = request.form.get("password")
+echo         if email == "admin@master.com" and password == "1234":
+echo             session["user_id"] = 1
+echo             session["role"] = "superadmin"
+echo             log_event("INFO","Admin login",f"email={email}")
+echo             return redirect(url_for("dashboard"))
+echo         return "Invalid login"
+echo     return render_template("login.html")
+echo.
+echo @app.route("/dashboard")
+echo def dashboard():
+echo     if "user_id" not in session:
+echo         return redirect(url_for("login"))
+echo     devices = RTUDevice.query.all()
+echo     events = EventLog.query.order_by(EventLog.id.desc()).limit(10).all()
+echo     return render_template("dashboard.html", devices=devices, events=events)
+echo.
+echo @app.route("/devices")
+echo def devices_page():
+echo     if "user_id" not in session:
+echo         return redirect(url_for("login"))
+echo     devices = RTUDevice.query.all()
+echo     return render_template("devices.html", devices=devices)
+echo.
+echo @app.route("/devices/add", methods=["POST"])
+echo def devices_add():
+echo     if "user_id" not in session:
+echo         return redirect(url_for("login"))
+echo     name = request.form.get("name")
+echo     phone = request.form.get("phone")
+echo     location = request.form.get("location")
+echo     d = RTUDevice(name=name, phone=phone, location=location)
+echo     db.session.add(d)
+echo     db.session.commit()
+echo     log_event("INFO","Device added",f"name={name},phone={phone}")
+echo     return redirect(url_for("devices_page"))
+echo.
+echo @app.route("/api/devices", methods=["GET"])
+echo def api_devices():
+echo     devices = RTUDevice.query.all()
+echo     return jsonify([
+echo         {"id":d.id,"name":d.name,"phone":d.phone,"location":d.location}
+echo         for d in devices
+echo     ])
+echo.
+echo @app.route("/api/access/<int:device_id>", methods=["GET"])
+echo def api_access_list(device_id):
+echo     entries = AccessEntry.query.filter_by(device_id=device_id).all()
+echo     return jsonify([
+echo         {"id":e.id,"name":e.name,"number":e.number,"slot":e.slot}
+echo         for e in entries
+echo     ])
+echo.
+echo @app.route("/api/access/<int:device_id>", methods=["POST"])
+echo def api_access_add(device_id):
+echo     data = request.json
+echo     entry = AccessEntry(
+echo         device_id=device_id,
+echo         name=data["name"],
+echo         number=data["number"],
+echo         slot=data["slot"]
+echo     )
+echo     db.session.add(entry)
+echo     db.session.commit()
+echo     log_event("INFO","Access added",f"device_id={device_id},number={data['number']}")
+echo     return jsonify({"status":"ok"})
+echo.
+echo @app.route("/logout")
+echo def logout():
+echo     session.clear()
+echo     return redirect(url_for("login"))
+echo.
+echo if __name__ == "__main__":
+echo     app.run(host="0.0.0.0", port=10000, debug=True)
+)
+
+echo Writing templates\login.html...
+> templates\login.html (
+echo ^<!DOCTYPE html^>
+echo ^<html^>
+echo ^<head^>
+echo ^<title^>GateMaster Login^</title^>
+echo ^</head^>
+echo ^<body^>
+echo ^<h2^>Login^</h2^>
+echo ^<form method="POST"^>
+echo Email: ^<input name="email"^>^<br^>
+echo Password: ^<input name="password" type="password"^>^<br^>
+echo ^<button type="submit"^>Login^</button^>
+echo ^</form^>
+echo ^</body^>
+echo ^</html^>
+)
+
+echo Writing templates\dashboard.html...
+> templates\dashboard.html (
+echo ^<!DOCTYPE html^>
+echo ^<html^>
+echo ^<head^>
+echo ^<title^>GateMaster Dashboard^</title^>
+echo ^</head^>
+echo ^<body^>
+echo ^<h2^>GateMaster V3 Dashboard^</h2^>
+echo ^<p^>Devices:^</p^>
+echo ^<ul^>
+echo ^{% for d in devices %}^
+echo ^<li^>{{ d.name }} - {{ d.phone }} - {{ d.location }}^</li^>
+echo ^{% endfor %}^
+echo ^</ul^>
+echo ^<h3^>Recent Events^</h3^>
+echo ^<ul^>
+echo ^{% for e in events %}^
+echo ^<li^>[{{ e.timestamp }}] {{ e.level }} - {{ e.message }}^</li^>
+echo ^{% endfor %}^
+echo ^</ul^>
+echo ^<a href="/devices"^>Manage Devices^</a^> ^|^
+echo ^<a href="/logout"^>Logout^</a^>
+echo ^</body^>
+echo ^</html^>
+)
+
+echo Writing templates\devices.html...
+> templates\devices.html (
+echo ^<!DOCTYPE html^>
+echo ^<html^>
+echo ^<head^>
+echo ^<title^>Devices^</title^>
+echo ^</head^>
+echo ^<body^>
+echo ^<h2^>RTU Devices^</h2^>
+echo ^<ul^>
+echo ^{% for d in devices %}^
+echo ^<li^>{{ d.name }} - {{ d.phone }} - {{ d.location }}^</li^>
+echo ^{% endfor %}^
+echo ^</ul^>
+echo ^<h3^>Add Device^</h3^>
+echo ^<form method="POST" action="/devices/add"^>
+echo Name: ^<input name="name"^>^<br^>
+echo Phone: ^<input name="phone"^>^<br^>
+echo Location: ^<input name="location"^>^<br^>
+echo ^<button type="submit"^>Add^</button^>
+echo ^</form^>
+echo ^<a href="/dashboard"^>Back to Dashboard^</a^>
+echo ^</body^>
+echo ^</html^>
+)
+
+echo Creating virtual environment...
+python -m venv venv
+
+echo Activating venv...
+call venv\Scripts\activate.bat
+
+echo Installing dependencies...
+pip install -r requirements.txt
+
+echo Removing old migrations and DB...
+rmdir /s /q migrations 2>nul
+del /f /q database\gatemaster_v3.db 2>nul
+
+echo Setting FLASK_APP...
+set FLASK_APP=src/app.py
+
+echo Initializing migrations...
+flask db init
+
+echo Generating migration...
+flask db migrate -m "initial schema"
+
+echo Applying migration...
+flask db upgrade
+
+echo ============================================
+echo   GATEMASTER V3 READY - STARTING SERVER
+echo ============================================
+
+python src\app.py

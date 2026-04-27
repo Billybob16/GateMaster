@@ -1,0 +1,31 @@
+﻿{% extends "layout.html" %}
+{% block content %}
+<h2>User Access Manager</h2>
+
+<h3>Add User</h3>
+
+<input id="name" placeholder="Name">
+<input id="number" placeholder="Phone Number">
+
+<label>Start Date</label>
+<input id="start_date" type="date">
+
+<label>Start Time</label>
+<input id="start_time" type="time">
+
+<label>End Date</label>
+<input id="end_date" type="date">
+
+<label>End Time</label>
+<input id="end_time" type="time">
+
+<button onclick="addUser()">Add User</button>
+
+<h3>Existing Users</h3>
+<table id="userTable">
+    <tr><th>Slot</th><th>Name</th><th>Number</th><th>Access</th><th>Action</th></tr>
+</table>
+
+<script src="/static/js/users.js"></script>
+
+{% endblock %}

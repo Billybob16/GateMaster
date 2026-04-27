@@ -1,13 +1,22 @@
-import eventlet
-eventlet.monkey_patch()
-
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+import os
+import json
+from datetime import datetime
+from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from datetime import datetime
-import json
-import os
-import random
+import requests
+
+# -------------------------------------------------
+# RTU CONFIG
+# -------------------------------------------------
+RTU_PHONE = "+61494652971"
+RTU_PWD = "6666"
+
+# -------------------------------------------------
+# MOBILEMESSAGE API (INSERT YOUR REAL VALUES)
+# -------------------------------------------------
+MOBILEMESSAGE_USERNAME = "<LFKfOM>"
+MOBILEMESSAGE_API_KEY = "<6tCVC8GFN4XPIQRJbrcAd1sXyR6WD4gVLxMjqqqYiU8>"
 
 # -------------------------------------------------
 # FLASK APP + DATABASE
@@ -20,10 +29,10 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-
 # -------------------------------------------------
 # DATABASE MODELS
 # -------------------------------------------------
+
 class User(db.Model):
     __tablename__ = "users"
 
@@ -57,10 +66,9 @@ class SignalData(db.Model):
 class SMSLog(db.Model):
     __tablename__ = "sms_log"
 
-    id = db.Column(db.Integer, primary_primary=True)
+    id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.String(32), nullable=False)
-    direction = db.Column(db.String(16), nullable=False)
-    number = db.Column(db.String(32), nullable=False)
+    sender = db.Column(db.String(32), nullable=False)
     message = db.Column(db.Text, nullable=False)
 
 
@@ -73,42 +81,60 @@ class DeviceStatus(db.Model):
     last_signal = db.Column(db.Integer)
 
 
+class RTUConfig(db.Model):
+    __tablename__ = "rtu_config"
+
+    id = db.Column(db.Integer, primary_key=True)
+    json_config = db.Column(db.Text, nullable=False)
+    updated_at = db.Column(db.String(32), nullable=False)
+
+
 # -------------------------------------------------
-# RTU CONFIG STORAGE
+# SMS SENDER (MobileMessage)
 # -------------------------------------------------
-DB_PATH = "database/rtu_config.db"
+
+def send_sms(number, message):
+    url = "https://api.mobilemessage.com.au/sms/send"
+    payload = {
+        "username": MOBILEMESSAGE_USERNAME,
+        "apikey": MOBILEMESSAGE_API_KEY,
+        "to": number,
+        "message": message
+    }
+
+    try:
+        r = requests.post(url, json=payload, timeout=10)
+        print("SMS SENT:", r.text)
+    except Exception as e:
+        print("SMS ERROR:", e)
+
+
+# -------------------------------------------------
+# RTU CONFIG HELPERS
+# -------------------------------------------------
 
 def get_rtu_config():
-    row = db.session.execute(db.text("SELECT json_config FROM rtu_config WHERE id = 1")).fetchone()
-    return json.loads(row[0])
+    cfg = RTUConfig.query.get(1)
+    return json.loads(cfg.json_config)
+
 
 def save_rtu_config(cfg):
-    db.session.execute(
-        db.text("UPDATE rtu_config SET json_config = :cfg, updated_at = :ts WHERE id = 1"),
-        {"cfg": json.dumps(cfg), "ts": datetime.utcnow().isoformat()}
-    )
+    row = RTUConfig.query.get(1)
+    row.json_config = json.dumps(cfg)
+    row.updated_at = datetime.utcnow().isoformat()
     db.session.commit()
 
 
 # -------------------------------------------------
 # USER ACCESS HELPERS
 # -------------------------------------------------
+
 def next_free_slot():
     used = [u.slot for u in User.query.all()]
     for i in range(1, 256):
         if i not in used:
             return i
     return None
-
-
-def send_welcome_sms(number, name):
-    msg = (
-        f"RJL Commercial has granted you access to their GSM Relay.\n"
-        f"Hi {name}, your phone is now authorised for gate control.\n"
-        f"Save this number in your contacts.\n"
-        f"When you call it, the call will hang up automatically and the gate will open."
-    )
-    send_sms(number, msg)
 
 
 def build_add_user_sms(slot, data):
@@ -133,6 +159,7 @@ def build_delete_user_sms(slot):
 # -------------------------------------------------
 # USER ACCESS API
 # -------------------------------------------------
+
 @app.route("/api/users", methods=["GET"])
 def api_get_users():
     users = User.query.order_by(User.slot).all()
@@ -171,8 +198,6 @@ def api_add_user():
     db.session.add(user)
     db.session.commit()
 
-    send_welcome_sms(data["number"], data["name"])
-
     return jsonify({"status": "sent", "command": sms_cmd})
 
 
@@ -192,14 +217,162 @@ def api_delete_user(number):
 
 
 # -------------------------------------------------
-# RTU SETTINGS ROUTES (UNCHANGED)
+# INBOUND SMS WEBHOOK
 # -------------------------------------------------
-# (Your entire RTU settings section stays the same — it already works)
-# I can clean it too if you want.
+
+@app.route("/sms/inbound", methods=["POST"])
+def sms_inbound():
+    sender = request.form.get("from")
+    message = request.form.get("message")
+
+    log = SMSLog(
+        timestamp=datetime.utcnow().isoformat(),
+        sender=sender,
+        message=message
+    )
+    db.session.add(log)
+    db.session.commit()
+
+    print("INBOUND SMS:", sender, message)
+
+    return "OK"
 
 
 # -------------------------------------------------
 # RUN SERVER
 # -------------------------------------------------
+
 if __name__ == "__main__":
     app.run(debug=True)
+@app.route("/dashboard")
+def dashboard_page():
+    return render_template("dashboard.html")
+@app.route("/users")
+def users_page():
+    return render_template("users.html")
+@app.route("/logs")
+def logs_page():
+    return render_template("logs.html")
+
+@app.route("/api/logs")
+def api_logs():
+    logs = SMSLog.query.order_by(SMSLog.id.desc()).all()
+    return jsonify([
+        {
+            "timestamp": l.timestamp,
+            "sender": l.sender,
+            "message": l.message
+        }
+        for l in logs
+    ])
+@app.route("/status")
+def status_page():
+    return render_template("status.html")
+
+@app.route("/api/status")
+def api_status():
+    s = DeviceStatus.query.order_by(DeviceStatus.id.desc()).first()
+    if not s:
+        return jsonify({
+            "online": False,
+            "last_signal": None,
+            "timestamp": None
+        })
+    return jsonify({
+        "online": s.online,
+        "last_signal": s.last_signal,
+        "timestamp": s.timestamp
+    })
+@app.route("/settings")
+def settings_page():
+    return render_template("settings.html")
+
+@app.route("/api/config", methods=["GET"])
+def api_get_config():
+    cfg = RTUConfig.query.get(1)
+    if not cfg:
+        return jsonify({})
+    return jsonify(json.loads(cfg.json_config))
+
+@app.route("/api/config", methods=["POST"])
+def api_save_config():
+    data = request.get_json()
+    row = RTUConfig.query.get(1)
+    if not row:
+        row = RTUConfig(id=1, json_config=json.dumps(data), updated_at=datetime.utcnow().isoformat())
+        db.session.add(row)
+    else:
+        row.json_config = json.dumps(data)
+        row.updated_at = datetime.utcnow().isoformat()
+    db.session.commit()
+    return jsonify({"status": "saved"})
+from flask import render_template
+
+@app.route("/dashboard")
+def dashboard_page():
+    return render_template("dashboard.html")
+
+@app.route("/users")
+def users_page():
+    return render_template("users.html")
+
+@app.route("/logs")
+def logs_page():
+    return render_template("logs.html")
+
+@app.route("/status")
+def status_page():
+    return render_template("status.html")
+
+@app.route("/settings")
+def settings_page():
+    return render_template("settings.html")
+
+@app.route("/test")
+def test_page():
+    return render_template("test.html")
+
+@app.route("/api/logs")
+def api_logs():
+    logs = SMSLog.query.order_by(SMSLog.id.desc()).all()
+    return jsonify([
+        {"timestamp": l.timestamp, "sender": l.sender, "message": l.message}
+        for l in logs
+    ])
+
+@app.route("/api/status")
+def api_status():
+    s = DeviceStatus.query.order_by(DeviceStatus.id.desc()).first()
+    if not s:
+        return jsonify({"online": False, "last_signal": None, "timestamp": None})
+    return jsonify({
+        "online": s.online,
+        "last_signal": s.last_signal,
+        "timestamp": s.timestamp
+    })
+
+@app.route("/api/config", methods=["GET"])
+def api_get_config():
+    cfg = RTUConfig.query.get(1)
+    if not cfg:
+        return jsonify({})
+    return jsonify(json.loads(cfg.json_config))
+
+@app.route("/api/config", methods=["POST"])
+def api_save_config():
+    data = request.get_json()
+    row = RTUConfig.query.get(1)
+    if not row:
+        row = RTUConfig(id=1, json_config=json.dumps(data), updated_at=datetime.utcnow().isoformat())
+        db.session.add(row)
+    else:
+        row.json_config = json.dumps(data)
+        row.updated_at = datetime.utcnow().isoformat()
+    db.session.commit()
+    return jsonify({"status": "saved"})
+
+@app.route("/api/send", methods=["POST"])
+def api_send():
+    cmd = request.json["cmd"]
+    send_sms(RTU_PHONE, cmd)
+    return jsonify({"status": "sent", "command": cmd})

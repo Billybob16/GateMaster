@@ -1,0 +1,11 @@
+﻿{% extends "layout.html" %}
+{% block content %}
+<h2>RTU Settings</h2>
+
+<textarea id="cfg" style="width:100%;height:300px;"></textarea>
+<br>
+<button onclick="saveCfg()">Save Settings</button>
+
+<script src="/static/js/settings.js"></script>
+
+{% endblock %}

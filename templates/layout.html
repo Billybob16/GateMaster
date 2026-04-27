@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>GateMaster V3</title>
+    <style>
+        body { margin:0; font-family:Arial; background:#111; color:#eee; }
+        .sidebar { width:220px; background:#000; height:100vh; position:fixed; top:0; left:0; padding:20px; }
+        .sidebar a { display:block; padding:10px; color:#0f0; text-decoration:none; margin-bottom:5px; }
+        .sidebar a:hover { background:#0f0; color:#000; }
+        .header { margin-left:220px; padding:15px; background:#222; color:#0f0; font-size:20px; }
+        .content { margin-left:220px; padding:20px; }
+        input, select { padding:8px; margin:5px 0; width:250px; }
+        button { padding:10px 15px; background:#0f0; border:none; cursor:pointer; }
+        button:hover { background:#7f7; }
+        table { width:100%; border-collapse:collapse; margin-top:20px; }
+        th, td { padding:10px; border-bottom:1px solid #333; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h3 style="color:#0f0;">GateMaster</h3>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/users">Users</a>
+    <a href="/logs">SMS Logs</a>
+    <a href="/status">Device Status</a>
+    <a href="/settings">RTU Settings</a>
+    <a href="/test">RTU Test Panel</a>
+</div>
+
+<div class="header">GateMaster V3 Control Panel</div>
+
+<div class="content">
+    {% block content %}{% endblock %}
+</div>
+
+</body>
+</html>
