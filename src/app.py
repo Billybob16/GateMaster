@@ -584,3 +584,44 @@ def delete_unit(unit_id):
     db.session.commit()
     return jsonify({'status': 'deleted'})
 
+
+# --- UNIT OVERVIEW API (DASHBOARD DATA) ---
+@app.route('/api/unit/<int:unit_id>/overview')
+def unit_overview(unit_id):
+    unit = Unit.query.get(unit_id)
+    if not unit:
+        return jsonify({'error': 'unit not found'}), 404
+    # Latest status
+    status = DeviceStatus.query.filter_by(unit_id=unit_id).order_by(DeviceStatus.id.desc()).first()
+    status_data = {
+        'online': status.online if status else False,
+        'last_signal': status.last_signal if status else None,
+        'timestamp': status.timestamp if status else None
+    }
+    # Latest config
+    cfg = RTUConfig.query.filter_by(unit_id=unit_id).first()
+    config_data = json.loads(cfg.json_config) if cfg else {} 
+    # Recent logs
+    logs = SMSLog.query.filter_by(unit_id=unit_id).order_by(SMSLog.id.desc()).limit(10).all()
+    log_data = [{
+        'id': l.id,
+        'timestamp': l.timestamp,
+        'sender': l.sender,
+        'message': l.message
+    } for l in logs]
+    # User count
+    user_count = UserAccess.query.filter_by(unit_id=unit_id).count()
+    return jsonify({
+        'unit': {
+            'id': unit.id,
+            'name': unit.name,
+            'phone_number': unit.phone_number,
+            'password': unit.password,
+            'created_at': unit.created_at
+        },
+        'status': status_data,
+        'config': config_data,
+        'logs': log_data,
+        'user_count': user_count
+    })
+
