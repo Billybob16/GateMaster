@@ -504,3 +504,35 @@ SMSLog.unit_id = db.Column(db.Integer, db.ForeignKey('unit.id'), nullable=True)
 # Link UserAccess to a specific unit
 UserAccess.unit_id = db.Column(db.Integer, db.ForeignKey('unit.id'), nullable=True)
 
+
+# --- INBOUND SMS PROCESSOR (MULTI-UNIT) ---
+@app.route('/api/inbound_sms', methods=['POST'])
+def inbound_sms():
+    data = request.get_json()
+    sender = data.get('from')
+    message = data.get('message', '').strip()
+    # Find which unit this SMS belongs to
+    unit = Unit.query.filter_by(phone_number=sender).first()
+    if not unit:
+        return jsonify({'error': 'unknown unit'}), 404
+    # Log inbound SMS
+    log = SMSLog(sender=sender, message=message, unit_id=unit.id)
+    db.session.add(log)
+    # Update status if message contains known patterns
+    status = DeviceStatus(unit_id=unit.id, timestamp=datetime.utcnow().isoformat())
+    if 'open' in message.lower():
+        status.online = True
+        status.last_signal = 'OPEN'
+    elif 'close' in message.lower():
+        status.online = True
+        status.last_signal = 'CLOSE'
+    elif 'power' in message.lower():
+        status.online = True
+        status.last_signal = 'POWER'
+    else:
+        status.online = True
+        status.last_signal = message
+    db.session.add(status)
+    db.session.commit()
+    return jsonify({'status': 'received', 'unit_id': unit.id})
+
