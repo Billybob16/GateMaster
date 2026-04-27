@@ -536,3 +536,51 @@ def inbound_sms():
     db.session.commit()
     return jsonify({'status': 'received', 'unit_id': unit.id})
 
+
+# --- UNIT MANAGEMENT API ---
+@app.route('/api/units', methods=['GET'])
+def list_units():
+    units = Unit.query.all()
+    return jsonify([{
+        'id': u.id,
+        'name': u.name,
+        'phone_number': u.phone_number,
+        'password': u.password,
+        'created_at': u.created_at
+    } for u in units])
+@app.route('/api/units', methods=['POST'])
+def create_unit():
+    data = request.get_json()
+    unit = Unit(
+        name=data.get('name'),
+        phone_number=data.get('phone_number'),
+        password=data.get('password')
+    )
+    db.session.add(unit)
+    db.session.commit()
+    return jsonify({'status': 'created', 'unit_id': unit.id})
+@app.route('/api/units/<int:unit_id>', methods=['PUT'])
+def update_unit(unit_id):
+    unit = Unit.query.get(unit_id)
+    if not unit:
+        return jsonify({'error': 'unit not found'}), 404
+    data = request.get_json()
+    unit.name = data.get('name', unit.name)
+    unit.phone_number = data.get('phone_number', unit.phone_number)
+    unit.password = data.get('password', unit.password)
+    db.session.commit()
+    return jsonify({'status': 'updated'})
+@app.route('/api/units/<int:unit_id>', methods=['DELETE'])
+def delete_unit(unit_id):
+    unit = Unit.query.get(unit_id)
+    if not unit:
+        return jsonify({'error': 'unit not found'}), 404
+    # Delete all linked data
+    RTUConfig.query.filter_by(unit_id=unit_id).delete()
+    DeviceStatus.query.filter_by(unit_id=unit_id).delete()
+    SMSLog.query.filter_by(unit_id=unit_id).delete()
+    UserAccess.query.filter_by(unit_id=unit_id).delete()
+    db.session.delete(unit)
+    db.session.commit()
+    return jsonify({'status': 'deleted'})
+
