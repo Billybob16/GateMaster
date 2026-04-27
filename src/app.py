@@ -1,7 +1,6 @@
 import os
 import json
 from datetime import datetime
-from flask import Flask, request, jsonify, render_template, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import requests
@@ -244,13 +243,10 @@ def sms_inbound():
 
 if __name__ == "__main__":
     app.run(debug=True)
-    return render_template("dashboard.html")
 @app.route("/users")
 def users_page():
-    return render_template("users.html")
 @app.route("/logs")
 def logs_page():
-    return render_template("logs.html")
 
 @app.route("/api/logs")
 def api_logs():
@@ -265,7 +261,6 @@ def api_logs():
     ])
 @app.route("/status")
 def status_page():
-    return render_template("status.html")
 
 @app.route("/api/status")
 def api_status():
@@ -283,7 +278,6 @@ def api_status():
     })
 @app.route("/settings")
 def settings_page():
-    return render_template("settings.html")
 
 @app.route("/api/config", methods=["GET"])
 def api_get_config():
@@ -304,29 +298,22 @@ def api_save_config():
         row.updated_at = datetime.utcnow().isoformat()
     db.session.commit()
     return jsonify({"status": "saved"})
-from flask import render_template
 
-    return render_template("dashboard.html")
 
 @app.route("/users")
 def users_page():
-    return render_template("users.html")
 
 @app.route("/logs")
 def logs_page():
-    return render_template("logs.html")
 
 @app.route("/status")
 def status_page():
-    return render_template("status.html")
 
 @app.route("/settings")
 def settings_page():
-    return render_template("settings.html")
 
 @app.route("/test")
 def test_page():
-    return render_template("test.html")
 
 @app.route("/api/logs")
 def api_logs():
@@ -686,19 +673,18 @@ def unit_clone(unit_id):
 
 
 @app.route('/dashboard')
-    return render_template('dashboard.html')
 
 
 @app.route('/dashboard')
-    return render_template('dashboard.html')
 
 
 @app.route('/dashboard')
-    return render_template('dashboard.html')
 
 
 @app.route('/dashboard')
-    return render_template('dashboard.html')
+
+
+@app.route('/dashboard')
 
 
 @app.route('/dashboard')
