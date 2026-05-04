@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RJL Commercial • Smart RTU5025 - Advanced Commands</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; }
+        .header-bg { background: linear-gradient(90deg, #0a2540, #1e3a5f); }
+        .card { background: linear-gradient(180deg, #1e3a5f, #0f2a4a); }
+    </style>
+</head>
+<body class="bg-[#0a2540] text-white">
+
+<div class="header-bg text-white py-3 px-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+        <span class="text-2xl">📡</span>
+        <div>
+            <span class="text-xl font-bold">RJL Commercial</span>
+            <span class="text-cyan-400"> • Smart RTU5025</span>
+        </div>
+    </div>
+    <div class="flex items-center gap-4">
+        <div class="bg-cyan-400 text-black text-xs px-3 py-1 rounded-full font-bold">● Connected</div>
+        <div class="flex items-center gap-2 bg-white/10 px-4 py-1 rounded-lg">
+            <span class="text-cyan-400 font-mono">+6149465297</span>
+        </div>
+        <button class="bg-white text-black px-4 py-1 rounded-lg text-sm font-medium">RJL Admin</button>
+    </div>
+</div>
+
+<div class="bg-[#112b4a] border-b border-cyan-400/30 px-6 py-2 flex gap-2 overflow-x-auto">
+    <a href="/dashboard" class="px-5 py-2 hover:bg-white/10 rounded-xl flex items-center gap-1">📊 Dashboard</a>
+    <a href="/relay" class="px-5 py-2 hover:bg-white/10 rounded-xl flex items-center gap-1">⚙️ Relay Settings</a>
+    <a href="/users" class="px-5 py-2 hover:bg-white/10 rounded-xl flex items-center gap-1">👥 User Management</a>
+    <a href="/advanced" class="px-5 py-2 bg-cyan-400 text-black rounded-xl font-medium flex items-center gap-1">🔧 Advanced Commands</a>
+    <a href="/logs" class="px-5 py-2 hover:bg-white/10 rounded-xl flex items-center gap-1">📜 History & Logs</a>
+</div>
+
+<div class="p-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="card rounded-3xl p-6 shadow-2xl">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="text-cyan-400 text-2xl">🔧</span>
+                <h1 class="text-3xl font-bold">Advanced Commands</h1>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                <!-- Device Configuration -->
+                <div class="bg-black/30 rounded-2xl p-6">
+                    <h2 class="text-xl font-semibold mb-4">⚙️ Device Configuration</h2>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-gray-400 text-sm">Device ID</label>
+                            <input type="text" value="RTU5025-001" readonly class="w-full bg-white/10 text-cyan-400 px-3 py-2 rounded mt-1 border border-cyan-400/30">
+                        </div>
+                        <div>
+                            <label class="text-gray-400 text-sm">Firmware Version</label>
+                            <input type="text" value="v2.4.1" readonly class="w-full bg-white/10 text-cyan-400 px-3 py-2 rounded mt-1 border border-cyan-400/30">
+                        </div>
+                        <div>
+                            <label class="text-gray-400 text-sm">Model</label>
+                            <input type="text" value="RTU5025" readonly class="w-full bg-white/10 text-cyan-400 px-3 py-2 rounded mt-1 border border-cyan-400/30">
+                        </div>
+                        <button onclick="alert('Configuration updated!')" class="w-full bg-cyan-400 text-black font-bold py-2 rounded-lg mt-4">📝 Update Config</button>
+                    </div>
+                </div>
+
+                <!-- System Commands -->
+                <div class="bg-black/30 rounded-2xl p-6">
+                    <h2 class="text-xl font-semibold mb-4">🖥️ System Commands</h2>
+                    <div class="space-y-2">
+                        <button onclick="alert('Performing factory reset...')" class="w-full bg-red-600 text-white font-bold py-2 rounded-lg hover:bg-red-700">🔄 Factory Reset</button>
+                        <button onclick="alert('Device rebooting...')" class="w-full bg-amber-500 text-black font-bold py-2 rounded-lg hover:bg-amber-600">⚡ Reboot Device</button>
+                        <button onclick="alert('Firmware update initiated...')" class="w-full bg-blue-500 text-white font-bold py-2 rounded-lg hover:bg-blue-600">📦 Update Firmware</button>
+                        <button onclick="alert('Clearing logs...')" class="w-full bg-gray-700 text-white font-bold py-2 rounded-lg hover:bg-gray-800">🗑️ Clear Logs</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SMS Command Builder -->
+            <div class="bg-black/30 rounded-2xl p-6 mt-6">
+                <h2 class="text-xl font-semibold mb-4">📱 SMS Command Builder</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-gray-400 text-sm">Command Type</label>
+                        <select class="w-full bg-white/10 text-white px-3 py-2 rounded mt-1 border border-cyan-400/30">
+                            <option>-- Select --</option>
+                            <option>Relay Control</option>
+                            <option>Add User</option>
+                            <option>Remove User</option>
+                            <option>Query Status</option>
+                            <option>Set Timer</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-gray-400 text-sm">Command Preview</label>
+                        <textarea readonly class="w-full bg-white/10 text-cyan-400 px-3 py-2 rounded mt-1 border border-cyan-400/30 font-mono text-xs h-20">Command will appear here...</textarea>
+                    </div>
+                    <button onclick="alert('Command sent via SMS!')" class="w-full bg-cyan-400 text-black font-bold py-2 rounded-lg">📤 Send Command</button>
+                </div>
+            </div>
+
+            <!-- Diagnostics -->
+            <div class="bg-black/30 rounded-2xl p-6 mt-6">
+                <h2 class="text-xl font-semibold mb-4">🔍 Diagnostics & Testing</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <button onclick="alert('Running connection test...')" class="bg-blue-500 text-white font-bold py-2 rounded-lg hover:bg-blue-600">🌐 Test Connection</button>
+                    <button onclick="alert('Running ping...')" class="bg-green-500 text-black font-bold py-2 rounded-lg hover:bg-green-600">📍 Ping Device</button>
+                    <button onclick="alert('Reading signal strength...')" class="bg-cyan-400 text-black font-bold py-2 rounded-lg hover:bg-cyan-500">📶 Check Signal</button>
+                    <button onclick="alert('System logs fetched!')" class="bg-purple-500 text-white font-bold py-2 rounded-lg hover:bg-purple-600">📋 View Logs</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
