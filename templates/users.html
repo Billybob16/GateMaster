@@ -1,31 +1,88 @@
 ﻿{% extends "layout.html" %}
 {% block content %}
-<h2>User Access Manager</h2>
 
-<h3>Add User</h3>
+<div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold flex items-center gap-3">
+            👥 Authorized Users <span class="text-cyan-400 text-xl">(Up to 999)</span>
+        </h1>
+        <div class="bg-white/10 px-4 py-2 rounded-2xl text-sm font-mono">Device Password: 1234</div>
+    </div>
 
-<input id="name" placeholder="Name">
-<input id="number" placeholder="Phone Number">
+    <!-- Add New User -->
+    <div class="card rounded-3xl p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4 flex items-center gap-2"><span class="text-cyan-400">➕</span> Add New User</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <input type="text" id="phone" placeholder="e.g. 0412345678 or +61412345678" class="bg-white/10 border border-white/30 rounded-2xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400">
+            <input type="text" id="name" placeholder="Full name (optional)" class="bg-white/10 border border-white/30 rounded-2xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400">
+            <button onclick="addUser()" class="bg-cyan-400 hover:bg-cyan-300 text-black font-semibold py-3 rounded-2xl flex items-center justify-center gap-2">
+                ➕ Add User
+            </button>
+        </div>
+    </div>
 
-<label>Start Date</label>
-<input id="start_date" type="date">
+    <!-- Authorized Users Table -->
+    <div class="card rounded-3xl p-6">
+        <h2 class="text-xl font-semibold mb-4">📋 Authorized Users</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-white/20">
+                        <th class="text-left py-3">Position</th>
+                        <th class="text-left py-3">Phone Number</th>
+                        <th class="text-left py-3">Name</th>
+                        <th class="text-left py-3">Status</th>
+                        <th class="text-left py-3">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="userTable" class="divide-y divide-white/10">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-<label>Start Time</label>
-<input id="start_time" type="time">
+<script>
+function addUser() {
+    const phone = document.getElementById('phone').value || '0412345678';
+    const name = document.getElementById('name').value || 'New User';
+    
+    const table = document.getElementById('userTable');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td class="py-3 font-mono">003</td>
+        <td class="py-3 font-mono">${phone}</td>
+        <td class="py-3">${name}</td>
+        <td class="py-3"><span class="bg-emerald-400 text-black text-xs px-3 py-1 rounded-full">Active</span></td>
+        <td class="py-3"><button onclick="this.parentElement.parentElement.remove()" class="text-red-400 hover:text-red-300 text-sm">Delete</button></td>
+    `;
+    table.appendChild(row);
+    
+    alert('✅ User added successfully! (Position auto-assigned)');
+    document.getElementById('phone').value = '';
+    document.getElementById('name').value = '';
+}
 
-<label>End Date</label>
-<input id="end_date" type="date">
-
-<label>End Time</label>
-<input id="end_time" type="time">
-
-<button onclick="addUser()">Add User</button>
-
-<h3>Existing Users</h3>
-<table id="userTable">
-    <tr><th>Slot</th><th>Name</th><th>Number</th><th>Access</th><th>Action</th></tr>
-</table>
-
-<script src="/static/js/users.js"></script>
+// Demo data
+document.addEventListener('DOMContentLoaded', () => {
+    const demoUsers = [
+        {pos: '001', phone: '+61412345678', name: 'Jarrod Admin', status: 'Active'},
+        {pos: '002', phone: '0412345678', name: 'Gate Operator', status: 'Active'}
+    ];
+    const table = document.getElementById('userTable');
+    demoUsers.forEach(u => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="py-3 font-mono">${u.pos}</td>
+            <td class="py-3 font-mono">${u.phone}</td>
+            <td class="py-3">${u.name}</td>
+            <td class="py-3"><span class="bg-emerald-400 text-black text-xs px-3 py-1 rounded-full">${u.status}</span></td>
+            <td class="py-3"><button onclick="this.parentElement.parentElement.remove()" class="text-red-400 hover:text-red-300 text-sm">Delete</button></td>
+        `;
+        table.appendChild(row);
+    });
+});
+</script>
 
 {% endblock %}
