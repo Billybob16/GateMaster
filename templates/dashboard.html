@@ -1,6 +1,48 @@
 ﻿{% extends "layout.html" %}
 {% block content %}
-<h2>Dashboard</h2>
-<p>Welcome to GateMaster V3.</p>
-<p>Use the menu to manage users, view logs, check device status, or update RTU settings.</p>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
+
+    <!-- Signal & Network -->
+    <div class="card rounded-3xl p-6 shadow-2xl">
+        <div class="flex items-center gap-2 mb-4">
+            <span class="text-cyan-400 text-xl"></span>
+            <h2 class="text-xl font-semibold">Signal & Network</h2>
+        </div>
+        <div class="bg-black/30 rounded-2xl p-4 mb-6">
+            <div class="h-3 bg-gray-700 rounded-full overflow-hidden">
+                <div class="h-full w-[38%] bg-gradient-to-r from-cyan-400 to-emerald-400"></div>
+            </div>
+            <div class="text-center text-sm mt-1 text-cyan-400">38%</div>
+        </div>
+        <div class="space-y-4 text-sm">
+            <div class="flex justify-between"><span class="text-gray-400">RSSI (CSQ):</span><span>12</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Signal (dBm):</span><span>-89 dBm</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Network Status:</span><span class="text-emerald-400">Registered</span></div>
+        </div>
+        <div class="flex gap-3 mt-8">
+            <button class="flex-1 bg-cyan-400 text-black font-medium py-3 rounded-2xl"> Check Signal</button>
+            <button class="flex-1 bg-white/10 py-3 rounded-2xl">ℹ Full Status</button>
+        </div>
+    </div>
+
+    <!-- Device Info -->
+    <div class="card rounded-3xl p-6 shadow-2xl">
+        <div class="flex items-center gap-2 mb-4">
+            <span class="text-cyan-400 text-xl"></span>
+            <h2 class="text-xl font-semibold">Device Info</h2>
+        </div>
+        <div class="space-y-4 text-sm">
+            <div class="flex justify-between"><span class="text-gray-400">Model:</span><span class="font-bold">RTU5025</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">SIM Number:</span><span>+6149465297</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Password:</span><span>6666</span></div>
+        </div>
+        <div class="flex gap-3 mt-8">
+            <button class="flex-1 bg-cyan-400 text-black font-medium py-3 rounded-2xl"> Trigger Relay Now</button>
+            <button class="flex-1 bg-amber-400 text-black font-medium py-3 rounded-2xl"> Reboot Device</button>
+        </div>
+    </div>
+
+</div>
+
 {% endblock %}
