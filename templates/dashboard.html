@@ -11,7 +11,6 @@
 </head>
 <body class="bg-[#0a2540] text-white">
 
-<!-- HEADER -->
 <div class="header-bg text-white py-3 px-6 flex items-center justify-between">
     <div class="flex items-center gap-3">
         <span class="text-2xl">📡</span>
@@ -29,7 +28,6 @@
     </div>
 </div>
 
-<!-- TABS -->
 <div class="bg-[#112b4a] border-b border-cyan-400/30 px-6 py-2 flex gap-2 overflow-x-auto">
     <a href="/dashboard" class="px-5 py-2 bg-cyan-400 text-black rounded-xl font-medium flex items-center gap-1">📊 Dashboard</a>
     <a href="/relay" class="px-5 py-2 hover:bg-white/10 rounded-xl flex items-center gap-1">⚙️ Relay Settings</a>
@@ -38,11 +36,8 @@
     <a href="/logs" class="px-5 py-2 hover:bg-white/10 rounded-xl flex items-center gap-1">📜 History & Logs</a>
 </div>
 
-<!-- MAIN CONTENT -->
 <div class="p-6">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
-
-        <!-- Signal & Network -->
         <div class="card rounded-3xl p-6 shadow-2xl">
             <div class="flex items-center gap-2 mb-4">
                 <span class="text-cyan-400 text-xl">📶</span>
@@ -58,15 +53,13 @@
                 <div class="flex justify-between"><span class="text-gray-400">RSSI (CSQ):</span><span class="font-mono">12</span></div>
                 <div class="flex justify-between"><span class="text-gray-400">Signal (dBm):</span><span class="font-mono">-89 dBm</span></div>
                 <div class="flex justify-between"><span class="text-gray-400">Network Status:</span><span class="text-emerald-400">Registered</span></div>
-                <div class="flex justify-between"><span class="text-gray-400">Last Reply:</span><span class="font-mono text-cyan-400">+CSQ: 12.0 - Signal: 38%</span></div>
             </div>
             <div class="flex gap-3 mt-8">
-                <button onclick="alert('Signal checked!')" class="flex-1 bg-cyan-400 hover:bg-cyan-300 text-black font-medium py-3 rounded-2xl">🔄 Check Signal</button>
-                <button onclick="alert('Full status requested!')" class="flex-1 bg-white/10 hover:bg-white/20 py-3 rounded-2xl">ℹ️ Full Status</button>
+                <button onclick="alert('Signal checked!')" class="flex-1 bg-cyan-400 text-black font-medium py-3 rounded-2xl">🔄 Check Signal</button>
+                <button onclick="alert('Full status requested!')" class="flex-1 bg-white/10 py-3 rounded-2xl">ℹ️ Full Status</button>
             </div>
         </div>
 
-        <!-- Device Info -->
         <div class="card rounded-3xl p-6 shadow-2xl">
             <div class="flex items-center gap-2 mb-4">
                 <span class="text-cyan-400 text-xl">📟</span>
@@ -78,11 +71,10 @@
                 <div class="flex justify-between"><span class="text-gray-400">Password:</span><span class="font-mono">6666</span></div>
             </div>
             <div class="flex gap-3 mt-8">
-                <button onclick="alert('Relay triggered!')" class="flex-1 bg-cyan-400 hover:bg-cyan-300 text-black font-medium py-3 rounded-2xl">⚡ Trigger Relay Now</button>
-                <button onclick="alert('Reboot requested!')" class="flex-1 bg-amber-400 hover:bg-amber-300 text-black font-medium py-3 rounded-2xl">🔄 Reboot Device</button>
+                <button onclick="alert('Relay triggered!')" class="flex-1 bg-cyan-400 text-black font-medium py-3 rounded-2xl">⚡ Trigger Relay Now</button>
+                <button onclick="alert('Reboot requested!')" class="flex-1 bg-amber-400 text-black font-medium py-3 rounded-2xl">🔄 Reboot Device</button>
             </div>
         </div>
-
     </div>
 </div>
 
