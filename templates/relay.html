@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RJL Commercial • Smart RTU5025 - Relay Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; }
+        .header-bg { background: linear-gradient(90deg, #0a2540, #1e3a5f); }
+        .card { background: linear-gradient(180deg, #1e3a5f, #0f2a4a); }
+    </style>
+</head>
+<body class="bg-[#0a2540] text-white">
+
+<div class="header-bg text-white py-3 px-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+        <span class="text-2xl">📡</span>
+        <div>
+            <span class="text-xl font-bold">RJL Commercial</span>
+            <span class="text-cyan-400"> • Smart RTU5025</span>
+        </div>
+    </div>
+    <div class="flex items-center gap-4">
+        <div class="bg-cyan-400 text-black text-xs px-3 py-1 rounded-full font-bold">● Connected</div>
+        <div class="flex items-center gap-2 bg-white/10 px-4 py-1 rounded-lg">
+            <span class="text-cyan-400 font-mono">+6149465297</span>
+        </div>
+        <button class="bg-white text-black px-4 py-1 rounded-lg text-sm font-medium">RJL Admin</button>
+    </div>
+</div>
+
+<div class="bg-[#112b4a] border-b border-cyan-400/30 px-6 py-2 flex gap-2 overflow-x-auto">
+    <a href="/dashboard" class="px-5 py-2 hover:bg-white/10 rounded-xl flex items-center gap-1">📊 Dashboard</a>
+    <a href="/relay" class="px-5 py-2 bg-cyan-400 text-black rounded-xl font-medium flex items-center gap-1">⚙️ Relay Settings</a>
+    <a href="/users" class="px-5 py-2 hover:bg-white/10 rounded-xl flex items-center gap-1">👥 User Management</a>
+    <a href="/advanced" class="px-5 py-2 hover:bg-white/10 rounded-xl flex items-center gap-1">🔧 Advanced Commands</a>
+    <a href="/logs" class="px-5 py-2 hover:bg-white/10 rounded-xl flex items-center gap-1">📜 History & Logs</a>
+</div>
+
+<div class="p-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="card rounded-3xl p-6 shadow-2xl">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="text-cyan-400 text-2xl">⚙️</span>
+                <h1 class="text-3xl font-bold">Relay Settings</h1>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                <!-- Relay 1 -->
+                <div class="bg-black/30 rounded-2xl p-6">
+                    <h2 class="text-xl font-semibold mb-4">🔌 Relay 1</h2>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Status:</span>
+                            <span class="bg-green-500 text-black px-3 py-1 rounded-full text-sm font-bold">● Active</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Mode:</span>
+                            <select class="bg-white/10 text-white px-3 py-1 rounded border border-cyan-400/30">
+                                <option>Normal</option>
+                                <option>Timer</option>
+                                <option>Pulse</option>
+                            </select>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Uptime:</span>
+                            <span class="font-mono">2h 45m 32s</span>
+                        </div>
+                        <button onclick="alert('Relay 1 activated!')" class="w-full bg-cyan-400 text-black font-medium py-2 rounded-lg mt-4">⚡ Activate</button>
+                        <button onclick="alert('Relay 1 deactivated!')" class="w-full bg-red-500 text-white font-medium py-2 rounded-lg">⊘ Deactivate</button>
+                    </div>
+                </div>
+
+                <!-- Relay 2 -->
+                <div class="bg-black/30 rounded-2xl p-6">
+                    <h2 class="text-xl font-semibold mb-4">🔌 Relay 2</h2>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Status:</span>
+                            <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">● Inactive</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Mode:</span>
+                            <select class="bg-white/10 text-white px-3 py-1 rounded border border-cyan-400/30">
+                                <option>Normal</option>
+                                <option>Timer</option>
+                                <option>Pulse</option>
+                            </select>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Downtime:</span>
+                            <span class="font-mono">18h 12m 04s</span>
+                        </div>
+                        <button onclick="alert('Relay 2 activated!')" class="w-full bg-cyan-400 text-black font-medium py-2 rounded-lg mt-4">⚡ Activate</button>
+                        <button onclick="alert('Relay 2 deactivated!')" class="w-full bg-red-500 text-white font-medium py-2 rounded-lg">⊘ Deactivate</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Actions -->
+            <div class="bg-black/30 rounded-2xl p-6 mt-6">
+                <h2 class="text-lg font-semibold mb-4">🎛️ Bulk Controls</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <button onclick="alert('All relays activated!')" class="bg-green-500 text-black font-bold py-3 rounded-lg hover:bg-green-600">✓ Activate All</button>
+                    <button onclick="alert('All relays deactivated!')" class="bg-red-500 text-white font-bold py-3 rounded-lg hover:bg-red-600">✗ Deactivate All</button>
+                    <button onclick="alert('Settings saved!')" class="bg-cyan-400 text-black font-bold py-3 rounded-lg hover:bg-cyan-500">💾 Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
